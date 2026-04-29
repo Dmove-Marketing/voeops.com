@@ -118,9 +118,9 @@ const {
         });
 
         // Anexar dados de tracking
-        const trackingRaw = sessionStorage.getItem('dmove_tracking');
+        const trackingRaw = sessionStorage.getItem('voe_tracking');
         const tracking = trackingRaw ? JSON.parse(trackingRaw) : {};
-        const firstVisit = sessionStorage.getItem('dmove_first_visit') || '';
+        const firstVisit = sessionStorage.getItem('voe_first_visit') || '';
 
         const payload = {
           project,
