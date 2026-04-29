@@ -1,0 +1,580 @@
+---
+interface Props {
+  showLink?: boolean;
+}
+
+const { showLink = false } = Astro.props;
+
+const plans = [
+  {
+    name: 'Starter',
+    slug: 'starter',
+    featured: false,
+    badge: '',
+    desc: 'Para quem precisa trocar planilha e WhatsApp solto por um CRM com WhatsApp de verdade.',
+    monthly: { price: '387', extra: '129' },
+    annual: { price: '330', extra: '110' },
+    users: '3 usuarios inclusos',
+    features: [
+      'Inbox WhatsApp nativo',
+      'WhatsApp API Oficial + API Voe',
+      'Funil de vendas',
+      'Negociacoes e contatos ilimitados',
+      'Relatorios basicos de vendas',
+      'Distribuicao inteligente de leads',
+      '1 GB de midia por usuario',
+    ],
+    ctaLabel: 'Agendar demonstracao',
+    ctaStyle: 'outline',
+    ctaLink: 'https://wa.me/5511999803580',
+  },
+  {
+    name: 'Growth',
+    slug: 'growth',
+    featured: false,
+    badge: '',
+    desc: 'Para quem quer o vendedor focado em vender, nao em fazer follow-up manual e controlar agenda na mao.',
+    monthly: { price: '687', extra: '229' },
+    annual: { price: '585', extra: '195' },
+    users: '3 usuarios inclusos',
+    features: [
+      'Tudo do Starter',
+      'Modulo de agenda',
+      'Multiplos funis simultaneos',
+      'Agendamento de envio de WhatsApp',
+      'Automacoes com acoes internas (ate 3)',
+      'Relatorios completos de funil',
+      '3 GB de midia por usuario',
+    ],
+    ctaLabel: 'Agendar demonstracao',
+    ctaStyle: 'outline',
+    ctaLink: 'https://wa.me/5511999803580',
+  },
+  {
+    name: 'Scale',
+    slug: 'scale',
+    featured: true,
+    badge: 'Mais escolhido',
+    desc: 'Para quem quer automacao completa, campanhas ativas, segmentacao inteligente e visao total da operacao.',
+    monthly: { price: '1.686', extra: '329' },
+    annual: { price: '1.434', extra: '280' },
+    users: '3 usuarios inclusos',
+    features: [
+      'Tudo do Starter e Growth',
+      'Audiencias com segmentacao avancada',
+      'Campanhas em massa (ate 10 mil/mes)',
+      'Automacoes (ate 10 ativas)',
+      'Botao de WhatsApp e formularios no site',
+      'Relatorios avancados de marketing',
+      '6 GB de midia por usuario',
+    ],
+    ctaLabel: 'Agendar demonstracao',
+    ctaStyle: 'solid',
+    ctaLink: 'https://wa.me/5511999803580',
+  },
+  {
+    name: 'Enterprise',
+    slug: 'enterprise',
+    featured: false,
+    badge: '',
+    desc: 'Para operacoes com volume, personalizacao ou governanca que pedem proposta sob medida.',
+    monthly: { price: 'consulta', extra: '' },
+    annual: { price: 'consulta', extra: '' },
+    users: 'Proposta sob medida',
+    features: [
+      'Tudo do Starter, Growth e Scale',
+      'Audiencias e campanhas com volume sob medida',
+      'Automacoes ilimitadas',
+      'Gerente de conta dedicado',
+      'SLA e governanca personalizados',
+      'Armazenamento de midia sob medida',
+    ],
+    ctaLabel: 'Fale com a gente',
+    ctaStyle: 'outline',
+    ctaLink: 'https://wa.me/5511999803580',
+  },
+];
+---
+
+<section class="pricing-section">
+  <div class="pricing-container">
+    <!-- Header -->
+    <div class="pricing-header">
+      <span class="pricing-eyebrow">Planos e precos</span>
+      <h2 class="pricing-title">Planos que crescem com o seu <em>time</em></h2>
+      <p class="pricing-subtitle">Todos os planos incluem 3 usuarios. Anual com 15% de desconto.</p>
+
+      <!-- Toggle -->
+      <div class="pricing-toggle" role="radiogroup" aria-label="Ciclo de cobranca">
+        <button
+          class="toggle-btn toggle-monthly is-active"
+          role="radio"
+          aria-checked="true"
+          data-cycle="monthly"
+        >Mensal</button>
+        <button
+          class="toggle-btn toggle-annual"
+          role="radio"
+          aria-checked="false"
+          data-cycle="annual"
+        >
+          Anual
+          <span class="toggle-badge">-15%</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="pricing-grid is-monthly">
+      {plans.map((plan) => (
+        <div class={`pricing-card ${plan.featured ? 'pricing-card--featured' : ''}`}>
+          {plan.badge && <span class="card-badge">{plan.badge}</span>}
+          <div class="card-header">
+            <h3 class="card-name">{plan.name}</h3>
+            <p class="card-desc">{plan.desc}</p>
+          </div>
+
+          <div class="card-pricing">
+            {plan.monthly.price === 'consulta' ? (
+              <>
+                <div class="price-block" data-cycle="monthly">
+                  <span class="price-value price-value--consulta">Sob consulta</span>
+                </div>
+                <div class="price-block" data-cycle="annual" style="display:none;">
+                  <span class="price-value price-value--consulta">Sob consulta</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div class="price-block" data-cycle="monthly">
+                  <div class="price-row">
+                    <span class="price-currency">R$</span>
+                    <span class="price-value">{plan.monthly.price}</span>
+                    <span class="price-period">/mes</span>
+                  </div>
+                  <span class="price-extra">+R$ {plan.monthly.extra} por usuario adicional</span>
+                </div>
+                <div class="price-block" data-cycle="annual" style="display:none;">
+                  <div class="price-row">
+                    <span class="price-currency">R$</span>
+                    <span class="price-value">{plan.annual.price}</span>
+                    <span class="price-period">/mes</span>
+                  </div>
+                  <span class="price-extra">+R$ {plan.annual.extra} por usuario adicional</span>
+                </div>
+              </>
+            )}
+            <span class="price-users">{plan.users}</span>
+          </div>
+
+          <ul class="card-features">
+            {plan.features.map((feat) => (
+              <li class="feature-item">
+                <span class="feature-check">
+                  <svg width="12" height="12" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1.5 5L3.8 7.5L8.5 2" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+                <span>{feat}</span>
+              </li>
+            ))}
+          </ul>
+
+          <a
+            href={plan.ctaLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            class={`card-cta ${plan.ctaStyle === 'solid' ? 'card-cta--solid' : 'card-cta--outline'}`}
+          >
+            {plan.ctaLabel}
+          </a>
+        </div>
+      ))}
+    </div>
+
+    {showLink && (
+      <div class="pricing-footer">
+        <a href="/planos" class="pricing-link">
+          Ver comparativo completo de planos e adicionais de IA
+          <span class="pricing-link-arrow">&rarr;</span>
+        </a>
+      </div>
+    )}
+  </div>
+</section>
+
+<style>
+  .pricing-section {
+    background: #F5F6F2;
+    overflow: hidden;
+    position: relative;
+    padding: 5rem 1.5rem;
+  }
+
+  .pricing-container {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  /* ---- Header ---- */
+  .pricing-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .pricing-eyebrow {
+    font-family: var(--font-mono, monospace);
+    text-transform: uppercase;
+    font-size: 0.8125rem;
+    letter-spacing: 0.08em;
+    color: var(--ardosia, #30455B);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .pricing-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 1.25rem;
+    height: 2px;
+    background: var(--terracotta, #E0422A);
+  }
+
+  .pricing-title {
+    font-family: var(--font-display, sans-serif);
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    color: var(--ardosia, #30455B);
+    margin: 0.75rem 0 1rem;
+    line-height: 1.2;
+  }
+
+  .pricing-title em {
+    font-family: var(--font-serif, serif);
+    font-style: italic;
+    color: var(--terracotta, #E0422A);
+  }
+
+  .pricing-subtitle {
+    font-family: var(--font-body, sans-serif);
+    font-size: 1.0625rem;
+    color: var(--carvao, #374049);
+    max-width: 480px;
+    margin: 0 auto 2rem;
+    line-height: 1.6;
+  }
+
+  /* ---- Toggle ---- */
+  .pricing-toggle {
+    display: inline-flex;
+    background: var(--off-white, #EDEFEA);
+    border-radius: 9999px;
+    padding: 4px;
+    gap: 0;
+  }
+
+  .toggle-btn {
+    font-family: var(--font-body, sans-serif);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    border: none;
+    background: transparent;
+    padding: 0.5rem 1.5rem;
+    border-radius: 9999px;
+    cursor: pointer;
+    color: var(--carvao, #374049);
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  .toggle-btn.is-active {
+    background: var(--ardosia, #30455B);
+    color: #fff;
+  }
+
+  .toggle-badge {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    background: var(--terracotta, #E0422A);
+    color: #fff;
+    padding: 0.125rem 0.4rem;
+    border-radius: 9999px;
+    line-height: 1.2;
+  }
+
+  /* ---- Grid ---- */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    align-items: start;
+  }
+
+  @media (max-width: 1024px) {
+    .pricing-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .pricing-grid {
+      grid-template-columns: 1fr;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+  }
+
+  /* ---- Card ---- */
+  .pricing-card {
+    background: #fff;
+    border: 1px solid rgba(0, 197, 180, 0.18);
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0, 197, 180, 0.06);
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .pricing-card--featured {
+    border: 2px solid var(--turquesa, #00C5B4);
+    box-shadow:
+      0 2px 12px rgba(0, 197, 180, 0.10),
+      0 0 0 4px rgba(0, 197, 180, 0.08);
+  }
+
+  .card-badge {
+    position: absolute;
+    top: -0.75rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: var(--turquesa, #00C5B4);
+    color: #fff;
+    padding: 0.25rem 0.875rem;
+    border-radius: 9999px;
+    white-space: nowrap;
+  }
+
+  .card-header {
+    margin-bottom: 1.25rem;
+  }
+
+  .card-name {
+    font-family: var(--font-display, sans-serif);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--ardosia, #30455B);
+    margin: 0 0 0.5rem;
+  }
+
+  .card-desc {
+    font-family: var(--font-body, sans-serif);
+    font-size: 0.875rem;
+    color: var(--carvao, #374049);
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  /* ---- Pricing ---- */
+  .card-pricing {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(0, 197, 180, 0.12);
+  }
+
+  .price-block {
+    margin-bottom: 0.25rem;
+  }
+
+  .price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.125rem;
+  }
+
+  .price-currency {
+    font-family: var(--font-display, sans-serif);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ardosia, #30455B);
+  }
+
+  .price-value {
+    font-family: var(--font-display, sans-serif);
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: var(--ardosia, #30455B);
+    line-height: 1;
+  }
+
+  .price-value--consulta {
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  .price-period {
+    font-family: var(--font-body, sans-serif);
+    font-size: 0.875rem;
+    color: var(--carvao, #374049);
+  }
+
+  .price-extra {
+    font-family: var(--font-body, sans-serif);
+    font-size: 0.8125rem;
+    color: var(--carvao, #374049);
+    opacity: 0.7;
+    display: block;
+    margin-top: 0.25rem;
+  }
+
+  .price-users {
+    font-family: var(--font-body, sans-serif);
+    font-size: 0.8125rem;
+    color: var(--turquesa, #00C5B4);
+    font-weight: 600;
+    display: block;
+    margin-top: 0.375rem;
+  }
+
+  /* ---- Features ---- */
+  .card-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    flex-grow: 1;
+  }
+
+  .feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-family: var(--font-body, sans-serif);
+    font-size: 0.875rem;
+    color: var(--carvao, #374049);
+    line-height: 1.4;
+  }
+
+  .feature-check {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    background: var(--turquesa, #00C5B4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+  }
+
+  /* ---- CTA ---- */
+  .card-cta {
+    display: block;
+    text-align: center;
+    font-family: var(--font-body, sans-serif);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    margin-top: auto;
+  }
+
+  .card-cta--outline {
+    border: 2px solid var(--turquesa, #00C5B4);
+    color: var(--turquesa, #00C5B4);
+    background: transparent;
+  }
+
+  .card-cta--outline:hover {
+    background: var(--turquesa, #00C5B4);
+    color: #fff;
+  }
+
+  .card-cta--solid {
+    background: var(--turquesa, #00C5B4);
+    color: #fff;
+    border: 2px solid var(--turquesa, #00C5B4);
+  }
+
+  .card-cta--solid:hover {
+    background: #00b3a3;
+    border-color: #00b3a3;
+  }
+
+  /* ---- Footer link ---- */
+  .pricing-footer {
+    text-align: center;
+    margin-top: 2.5rem;
+  }
+
+  .pricing-link {
+    font-family: var(--font-body, sans-serif);
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--turquesa, #00C5B4);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    transition: gap 0.2s ease;
+  }
+
+  .pricing-link:hover {
+    gap: 0.625rem;
+  }
+
+  .pricing-link-arrow {
+    font-size: 1.125rem;
+  }
+</style>
+
+<script>
+  function initPricingToggle() {
+    const section = document.querySelector('.pricing-section');
+    if (!section) return;
+
+    const grid = section.querySelector('.pricing-grid') as HTMLElement;
+    const btnMonthly = section.querySelector('.toggle-monthly') as HTMLButtonElement;
+    const btnAnnual = section.querySelector('.toggle-annual') as HTMLButtonElement;
+
+    if (!grid || !btnMonthly || !btnAnnual) return;
+
+    function setCycle(cycle: 'monthly' | 'annual') {
+      const isMonthly = cycle === 'monthly';
+
+      grid.classList.toggle('is-monthly', isMonthly);
+      grid.classList.toggle('is-annual', !isMonthly);
+
+      btnMonthly.classList.toggle('is-active', isMonthly);
+      btnAnnual.classList.toggle('is-active', !isMonthly);
+
+      btnMonthly.setAttribute('aria-checked', String(isMonthly));
+      btnAnnual.setAttribute('aria-checked', String(!isMonthly));
+
+      const blocks = grid.querySelectorAll<HTMLElement>('.price-block');
+      blocks.forEach((block) => {
+        const blockCycle = block.getAttribute('data-cycle');
+        block.style.display = blockCycle === cycle ? '' : 'none';
+      });
+    }
+
+    btnMonthly.addEventListener('click', () => setCycle('monthly'));
+    btnAnnual.addEventListener('click', () => setCycle('annual'));
+  }
+
+  // Support Astro view transitions
+  document.addEventListener('astro:page-load', initPricingToggle);
+  initPricingToggle();
+</script>

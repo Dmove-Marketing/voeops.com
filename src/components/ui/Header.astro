@@ -1,0 +1,263 @@
+---
+// src/components/ui/Header.astro
+// Voe CRM header — sticky, dark bg, WhatsApp CTA
+---
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="/" class="header-logo">
+      <img src="/images/logo-voe.png" alt="Voe" class="header-logo-img" />
+    </a>
+
+    <nav class="header-nav" aria-label="Navegacao principal">
+      <ul class="header-links">
+        <li><a href="/#produto" class="header-link">Produto</a></li>
+        <li><a href="/planos" class="header-link">Planos</a></li>
+        <li><a href="/#parceiros" class="header-link">Parceiros</a></li>
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <a href="https://app.voeops.com/login" class="header-login">Login</a>
+      <a href="https://wa.me/5511999803580" target="_blank" rel="noopener" class="btn btn-primary header-cta" data-cta="header-cta">
+        Agendar demonstracao
+      </a>
+      <button class="header-hamburger" aria-label="Menu" aria-expanded="false">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="header-mobile-menu" hidden>
+    <nav>
+      <ul class="mobile-links">
+        <li><a href="/#produto" class="mobile-link">Produto</a></li>
+        <li><a href="/planos" class="mobile-link">Planos</a></li>
+        <li><a href="/#parceiros" class="mobile-link">Parceiros</a></li>
+      </ul>
+      <a href="https://app.voeops.com/login" class="mobile-login">Login</a>
+      <a href="https://wa.me/5511999803580" target="_blank" rel="noopener" class="btn btn-primary mobile-cta" data-cta="mobile-cta">
+        Agendar demonstracao
+      </a>
+    </nav>
+  </div>
+</header>
+
+<script>
+  function initHeader() {
+    const header = document.querySelector('.site-header') as HTMLElement;
+    const hamburger = document.querySelector('.header-hamburger') as HTMLButtonElement;
+    const mobileMenu = document.querySelector('.header-mobile-menu') as HTMLElement;
+
+    if (!header) return;
+
+    window.addEventListener('scroll', () => {
+      const currentScroll = window.scrollY;
+      header.classList.toggle('header-scrolled', currentScroll > 80);
+    });
+
+    hamburger?.addEventListener('click', () => {
+      const isOpen = hamburger.getAttribute('aria-expanded') === 'true';
+      hamburger.setAttribute('aria-expanded', (!isOpen).toString());
+      hamburger.classList.toggle('hamburger-active');
+
+      if (isOpen) {
+        mobileMenu.classList.remove('mobile-menu-open');
+        setTimeout(() => { mobileMenu.hidden = true; }, 300);
+        document.body.style.overflow = '';
+      } else {
+        mobileMenu.hidden = false;
+        requestAnimationFrame(() => mobileMenu.classList.add('mobile-menu-open'));
+        document.body.style.overflow = 'hidden';
+      }
+    });
+
+    mobileMenu?.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        hamburger.click();
+      });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initHeader);
+  } else {
+    initHeader();
+  }
+</script>
+
+<style>
+  .site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    padding: var(--space-md) 0;
+    transition: all 0.3s ease;
+    background: var(--ardosia);
+  }
+
+  .header-scrolled {
+    background: rgba(48, 69, 91, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.15);
+    padding: var(--space-sm) 0;
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-xl);
+  }
+
+  .header-logo-img {
+    height: 36px;
+    width: auto;
+  }
+
+  .header-links {
+    display: flex;
+    gap: var(--space-xl);
+    list-style: none;
+  }
+
+  .header-link {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-on-dark-secondary);
+    transition: color var(--transition-fast);
+    position: relative;
+  }
+
+  .header-link:hover {
+    color: var(--text-on-dark);
+  }
+
+  .header-link::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--turquesa);
+    transition: width var(--transition-normal);
+    border-radius: 2px;
+  }
+
+  .header-link:hover::after {
+    width: 100%;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+
+  .header-login {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-on-dark-secondary);
+    transition: color var(--transition-fast);
+  }
+
+  .header-login:hover {
+    color: var(--text-on-dark);
+  }
+
+  .header-cta {
+    font-size: 0.85rem;
+    padding: 10px 20px;
+  }
+
+  /* Hamburger */
+  .header-hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    width: 28px;
+    padding: 4px 0;
+  }
+
+  .hamburger-line {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: var(--text-on-dark);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+  }
+
+  .hamburger-active .hamburger-line:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+  }
+  .hamburger-active .hamburger-line:nth-child(2) {
+    opacity: 0;
+  }
+  .hamburger-active .hamburger-line:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+  }
+
+  /* Mobile menu */
+  .header-mobile-menu {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--ardosia);
+    padding: var(--space-2xl);
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 999;
+  }
+
+  .header-mobile-menu.mobile-menu-open {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .mobile-links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+
+  .mobile-link {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: var(--text-on-dark);
+    display: block;
+    padding: var(--space-sm) 0;
+    border-bottom: 1px solid var(--glass-dark-border);
+  }
+
+  .mobile-login {
+    display: block;
+    color: var(--text-on-dark-secondary);
+    font-size: 1rem;
+    font-weight: 500;
+    padding: var(--space-md) 0;
+  }
+
+  .mobile-cta {
+    width: 100%;
+    margin-top: var(--space-md);
+    text-align: center;
+  }
+
+  @media (max-width: 768px) {
+    .header-nav { display: none; }
+    .header-cta { display: none; }
+    .header-login { display: none; }
+    .header-hamburger { display: flex; }
+  }
+</style>

@@ -1,0 +1,297 @@
+---
+/**
+ * ProductTabs.astro
+ * Tabbed product showcase with 9 feature tabs.
+ */
+---
+
+<section class="product-tabs" id="productTabs">
+  <div class="container-wide">
+    <header class="product-tabs__header">
+      <span class="eyebrow">Produto em acao</span>
+      <h2 class="product-tabs__title">
+        Explore os principais <em>recursos</em>
+      </h2>
+      <p class="product-tabs__subtitle" id="tabSub">
+        Inbox unificado de WhatsApp e Instagram Direct.
+      </p>
+    </header>
+
+    <div class="tab-bar" role="tablist" aria-label="Recursos do produto">
+      <button class="tab active" role="tab" aria-selected="true" data-tab="conversas">Conversas</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="negociacoes">Negociacoes</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="oportunidade">Oportunidade</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="atividades">Atividades</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="whatsapp">WhatsApp agendado</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="agenda">Agenda</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="audiencias">Audiencias</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="campanhas">Campanhas</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="automacoes">Automacoes</button>
+    </div>
+
+    <div class="tab-content" role="tabpanel">
+      <div class="tab-mock">
+        <span class="tab-mock__placeholder">Screenshot em breve</span>
+      </div>
+    </div>
+
+    <div class="tab-caption">
+      <h3 class="tab-caption__title" id="tabTitle">Conversas</h3>
+      <p class="tab-caption__desc" id="tabDesc">
+        Inbox unificado de WhatsApp e Instagram Direct.
+      </p>
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    const tabData = {
+      conversas: {
+        title: "Conversas",
+        lead: "Inbox unificado de WhatsApp e Instagram Direct.",
+      },
+      negociacoes: {
+        title: "Negociacoes",
+        lead: "Funil visual em Kanban ou lista, multiplos funis simultaneos.",
+      },
+      oportunidade: {
+        title: "Oportunidade",
+        lead: "Tudo que o vendedor precisa, sem sair da tela.",
+      },
+      atividades: {
+        title: "Atividades",
+        lead: "Lista centralizada de todas as atividades do time.",
+      },
+      whatsapp: {
+        title: "WhatsApp agendado",
+        lead: "Agende envio de mensagem para data e hora definidos.",
+      },
+      agenda: {
+        title: "Agenda",
+        lead: "Calendario visual sincronizado com o CRM.",
+      },
+      audiencias: {
+        title: "Audiencias",
+        lead: "Segmentacao avancada de contatos e negociacoes.",
+      },
+      campanhas: {
+        title: "Campanhas",
+        lead: "Disparo em massa de WhatsApp e e-mail.",
+      },
+      automacoes: {
+        title: "Automacoes",
+        lead: "Fluxos disparados por gatilhos do sistema.",
+      },
+    };
+
+    const section = document.getElementById("productTabs");
+    if (!section) return;
+
+    const tabs = section.querySelectorAll(".tab");
+    const subtitle = document.getElementById("tabSub");
+    const captionTitle = document.getElementById("tabTitle");
+    const captionDesc = document.getElementById("tabDesc");
+
+    tabs.forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        const key = tab.getAttribute("data-tab");
+        const data = tabData[key];
+        if (!data) return;
+
+        tabs.forEach(function (t) {
+          t.classList.remove("active");
+          t.setAttribute("aria-selected", "false");
+        });
+        tab.classList.add("active");
+        tab.setAttribute("aria-selected", "true");
+
+        if (subtitle) subtitle.textContent = data.lead;
+        if (captionTitle) captionTitle.textContent = data.title;
+        if (captionDesc) captionDesc.textContent = data.lead;
+      });
+    });
+  })();
+</script>
+
+<style>
+  .product-tabs {
+    background: #f5f6f2;
+    border-top: 1px solid var(--glass-border);
+    padding: var(--space-4xl) 0;
+  }
+
+  .container-wide {
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: 0 var(--space-lg);
+  }
+
+  /* ---- Header ---- */
+  .product-tabs__header {
+    text-align: center;
+    margin-bottom: var(--space-xl);
+  }
+
+  .eyebrow {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--carvao);
+    margin-bottom: var(--space-sm);
+  }
+
+  .eyebrow::before {
+    content: "\2014";
+    color: var(--turquesa);
+    margin-right: 0.5em;
+  }
+
+  .product-tabs__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    font-weight: 700;
+    color: var(--ardosia);
+    line-height: 1.2;
+    margin: var(--space-xs) 0 var(--space-sm);
+  }
+
+  .product-tabs__title em {
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--turquesa);
+  }
+
+  .product-tabs__subtitle {
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    color: var(--carvao);
+    opacity: 0.8;
+    max-width: 540px;
+    margin: 0 auto;
+    min-height: 1.6em;
+  }
+
+  /* ---- Tab bar ---- */
+  .tab-bar {
+    display: flex;
+    gap: 4px;
+    background: #fff;
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    padding: 6px;
+    margin-bottom: var(--space-lg);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .tab-bar::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .tab-bar::-webkit-scrollbar-thumb {
+    background: var(--glass-border);
+    border-radius: var(--radius-full);
+  }
+
+  .tab {
+    flex: 0 0 auto;
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--carvao);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .tab:hover {
+    background: rgba(48, 69, 91, 0.08);
+    color: var(--ardosia);
+  }
+
+  .tab.active {
+    background: var(--ardosia);
+    color: #fff;
+  }
+
+  .tab.active:hover {
+    background: var(--ardosia);
+    color: #fff;
+  }
+
+  /* ---- Content / Mock ---- */
+  .tab-content {
+    margin-bottom: var(--space-lg);
+  }
+
+  .tab-mock {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 1px solid rgba(0, 197, 180, 0.18);
+    border-radius: 12px;
+    height: clamp(560px, 70vh, 760px);
+    box-shadow: 0 4px 24px rgba(48, 69, 91, 0.06),
+      0 1px 4px rgba(48, 69, 91, 0.04);
+  }
+
+  .tab-mock__placeholder {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--carvao);
+    opacity: 0.4;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* ---- Caption ---- */
+  .tab-caption {
+    border-top: 1px solid var(--glass-border);
+    padding-top: var(--space-md);
+    display: flex;
+    gap: var(--space-md);
+    align-items: baseline;
+    flex-wrap: wrap;
+  }
+
+  .tab-caption__title {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--ardosia);
+    flex: 0 0 auto;
+  }
+
+  .tab-caption__desc {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--carvao);
+    opacity: 0.75;
+    flex: 1 1 auto;
+  }
+
+  /* ---- Mobile ---- */
+  @media (max-width: 768px) {
+    .product-tabs {
+      padding: var(--space-2xl) 0;
+    }
+
+    .container-wide {
+      padding: 0 var(--space-md);
+    }
+
+    .tab-caption {
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+  }
+</style>

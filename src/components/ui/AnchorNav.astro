@@ -1,0 +1,99 @@
+---
+// AnchorNav.astro — sticky secondary nav for Planos page
+---
+
+<nav class="anchor-nav" id="anchorNav" aria-label="Navegação da página">
+  <div class="container anchor-nav-inner">
+    <a href="#planos" class="anchor-link">Planos</a>
+    <a href="#ia" class="anchor-link">IA</a>
+    <a href="#setup" class="anchor-link">Setup</a>
+    <a href="#simulador" class="anchor-link">Simular</a>
+    <a href="#comparativo" class="anchor-link">Comparar</a>
+    <a href="#politicas" class="anchor-link">Políticas</a>
+  </div>
+</nav>
+
+<script>
+  function initAnchorNav() {
+    const nav = document.getElementById('anchorNav');
+    if (!nav) return;
+
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('anchor-nav--visible', window.scrollY > 400);
+    });
+
+    const links = nav.querySelectorAll('.anchor-link');
+    const sections = Array.from(links).map(l => {
+      const id = l.getAttribute('href')?.replace('#', '');
+      return id ? document.getElementById(id) : null;
+    });
+
+    function updateActive() {
+      const scrollY = window.scrollY + 120;
+      let activeIdx = 0;
+      sections.forEach((sec, i) => {
+        if (sec && sec.offsetTop <= scrollY) activeIdx = i;
+      });
+      links.forEach((l, i) => l.classList.toggle('is-active', i === activeIdx));
+    }
+
+    window.addEventListener('scroll', updateActive);
+    updateActive();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAnchorNav);
+  } else {
+    initAnchorNav();
+  }
+</script>
+
+<style>
+  .anchor-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 900;
+    background: rgba(48, 69, 91, 0.95);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+    padding: 0;
+  }
+
+  .anchor-nav--visible {
+    transform: translateY(0);
+  }
+
+  .anchor-nav-inner {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 48px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .anchor-link {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(237,239,234,0.65);
+    padding: 6px 14px;
+    border-radius: var(--radius-full);
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+
+  .anchor-link:hover {
+    color: rgba(237,239,234,0.9);
+  }
+
+  .anchor-link.is-active {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+</style>

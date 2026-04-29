@@ -1,0 +1,285 @@
+---
+// ComparisonTable.astro — Feature comparison matrix
+const check = '✓';
+const dash = '—';
+const soon = 'em breve';
+
+const categories = [
+  {
+    name: 'Atendimento',
+    features: [
+      ['Inbox de conversas do WhatsApp', check, check, check, check],
+      ['WhatsApp API Oficial', check, check, check, check],
+      ['WhatsApp API Voe (QR Code)', check, check, check, check],
+      [`Inbox Instagram Direct [${soon}]`, check, check, check, check],
+      ['Armazenamento de mídia por usuário', '1 GB', '3 GB', '6 GB', 'Personalizado'],
+      [`Ferramenta de limpeza de mídia [${soon}]`, check, check, check, check],
+      ['Central de Modelos de mensagem', check, check, check, check],
+      ['Painel do Lead na conversa', check, check, check, check],
+      ['Fila de Atendimento', check, check, check, check],
+      ['Supervisão de Conversas', check, check, check, check],
+      [`Relatórios de atendimento [${soon}]`, check, check, check, check],
+    ],
+  },
+  {
+    name: 'CRM',
+    features: [
+      ['Negociações ilimitadas', check, check, check, check],
+      ['Contatos ilimitados', check, check, check, check],
+      ['Empresas ilimitadas', check, check, check, check],
+      ['Funil de Vendas (Kanban e lista)', check, check, check, check],
+      ['Múltiplos funis simultâneos', dash, '3', '10', 'Personalizado'],
+      ['Etapas personalizáveis', check, check, check, check],
+      ['Distribuição inteligente de leads', check, check, check, check],
+      ['Pausa na distribuição de leads nas férias', check, check, check, check],
+      ['Qualificação por estrelas personalizável', check, check, check, check],
+      ['Campos personalizados', check, check, check, check],
+      [`Campos obrigatórios por etapa [${soon}]`, check, check, check, check],
+      ['Produtos e serviços na negociação', check, check, check, check],
+      [`Gerador de Propostas [${soon}]`, dash, check, check, check],
+      ['Anotações e linha do tempo da negociação', check, check, check, check],
+      ['Agendamento de envio de WhatsApp', dash, check, check, check],
+      [`E-mail direto na negociação [${soon}]`, check, check, check, check],
+      [`Ligações VOIP [${soon}]`, check, check, check, check],
+      [`Gravação de ligações VOIP [${soon}]`, check, check, check, check],
+      [`Importar / exportar base de leads [${soon}]`, check, check, check, check],
+      ['Conformidade com a LGPD', check, check, check, check],
+    ],
+  },
+  {
+    name: 'Agenda',
+    features: [
+      ['Agenda do usuário', dash, check, check, check],
+      ['Agenda de datas de eventos (setor de eventos)', dash, check, check, check],
+      [`Integração com Google e Apple Calendar [${soon}]`, dash, check, check, check],
+    ],
+  },
+  {
+    name: 'Audiências',
+    features: [
+      ['Criação de audiências para disparos em massa', dash, dash, check, check],
+      ['Criação de audiências para automações', dash, dash, check, check],
+      ['Audiências estáticas', dash, dash, '30', 'Personalizado'],
+      ['Audiências dinâmicas', dash, dash, '10', 'Personalizado'],
+      [`Lead Scoring [${soon}]`, dash, dash, check, check],
+    ],
+  },
+  {
+    name: 'Campanhas',
+    features: [
+      ['Criação e aprovação de mensagens WhatsApp', check, check, check, check],
+      ['Disparos em massa via WhatsApp (API Oficial)', dash, dash, '10 mil/mês', 'Personalizado'],
+      [`Disparos em massa via e-mail [${soon}]`, dash, dash, '10 mil/mês', 'Personalizado'],
+      [`Status de envio em tempo real [${soon}]`, dash, dash, check, check],
+      [`Análise de performance de disparos [${soon}]`, dash, dash, check, check],
+      [`Botão de WhatsApp no site [${soon}]`, dash, dash, check, check],
+      [`Pop-ups [${soon}]`, dash, dash, check, check],
+      [`Criador de formulários [${soon}]`, dash, dash, check, check],
+    ],
+  },
+  {
+    name: 'Automações',
+    features: [
+      ['Automações personalizadas', dash, '3 ativas', '10 ativas', 'Personalizado'],
+      ['WhatsApp nas automações', dash, dash, check, check],
+      [`Automação de e-mail sequencial [${soon}]`, dash, dash, '10 fluxos', 'Personalizado'],
+      [`Chatbot de recepção e direcionamento [${soon}]`, dash, '3 fluxos', '10 fluxos', 'Personalizado'],
+    ],
+  },
+  {
+    name: 'Relatórios',
+    features: [
+      [`Relatórios básicos de vendas [${soon}]`, check, check, check, check],
+      [`Relatórios completos de funil [${soon}]`, dash, check, check, check],
+      [`Relatórios avançados de marketing e vendas [${soon}]`, dash, dash, check, check],
+    ],
+  },
+  {
+    name: 'Configurações e Administração',
+    features: [
+      ['Gestão de visibilidade por usuário', check, check, check, check],
+      ['Permissões personalizadas', check, check, check, check],
+      ['Configuração de equipes', dash, check, check, check],
+    ],
+  },
+  {
+    name: 'Suporte e Comunidade',
+    features: [
+      ['Suporte reativo', 'SLA 8h', 'SLA 6h', 'SLA 4h', 'SLA 2h'],
+      ['Gerente de contas dedicado', dash, dash, dash, check],
+      ['Suporte ativo', dash, dash, check, check],
+      [`Comunidade Voe no WhatsApp [${soon}]`, dash, check, check, check],
+      [`Plantão Voe por videoconferência [${soon}]`, dash, check, check, check],
+    ],
+  },
+];
+
+const plans = ['Starter', 'Growth', 'Scale', 'Enterprise'];
+---
+
+<section class="comp-section" id="comparativo">
+  <div class="container">
+    <div class="eyebrow" data-animate="fade-up">Comparativo completo</div>
+    <h2 class="section-title" data-animate="fade-up" data-delay="0.1">O que cada plano <em>inclui</em></h2>
+    <p class="section-sub" data-animate="fade-up" data-delay="0.2">Todas as funcionalidades, linha a linha. Itens marcados como "em breve" estão em desenvolvimento.</p>
+
+    <div class="comp-table-wrap" data-animate="fade-up" data-delay="0.3">
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th class="comp-feature-col"></th>
+            {plans.map((p, i) => (
+              <th class:list={['comp-plan-col', { 'comp-plan-featured': i === 2 }]}>{p}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {categories.map(cat => (
+            <>
+              <tr class="comp-cat-row">
+                <td colspan="5">{cat.name}</td>
+              </tr>
+              {cat.features.map(row => (
+                <tr>
+                  <td class="comp-feature">{row[0]}</td>
+                  {[1,2,3,4].map(i => (
+                    <td class:list={['comp-cell', {
+                      'comp-check': row[i] === check,
+                      'comp-dash': row[i] === dash,
+                      'comp-featured-col': i === 3,
+                    }]}>
+                      {row[i] === check ? (
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L3.8 7.5L8.5 2" stroke="#00C5B4" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      ) : row[i] === dash ? (
+                        <span class="comp-dash-icon">—</span>
+                      ) : (
+                        <span class="comp-value">{row[i]}</span>
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<style>
+  .comp-section {
+    background: #F5F6F2;
+    padding: 110px 0;
+    scroll-margin-top: 80px;
+  }
+
+  .comp-section .section-title em {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--turquesa);
+  }
+
+  .comp-section .section-sub {
+    font-size: 18px;
+    color: var(--carvao-light);
+    max-width: 620px;
+    margin-top: 18px;
+    line-height: 1.5;
+  }
+
+  .comp-table-wrap {
+    margin-top: 48px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 14px;
+    border: 1px solid var(--glass-border);
+    background: white;
+  }
+
+  .comp-table {
+    width: 100%;
+    min-width: 800px;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .comp-table thead th {
+    padding: 18px 20px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ardosia);
+    background: #fafbf8;
+    border-bottom: 1px solid var(--glass-border);
+    position: sticky;
+    top: 0;
+  }
+
+  .comp-feature-col {
+    text-align: left !important;
+    min-width: 280px;
+  }
+
+  .comp-plan-col {
+    min-width: 120px;
+  }
+
+  .comp-plan-featured {
+    color: var(--turquesa) !important;
+  }
+
+  .comp-cat-row td {
+    padding: 14px 20px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--turquesa);
+    background: #fafbf8;
+    border-top: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .comp-table tbody tr:not(.comp-cat-row) {
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+
+  .comp-table tbody tr:not(.comp-cat-row):hover {
+    background: rgba(0,197,180,0.03);
+  }
+
+  .comp-feature {
+    padding: 12px 20px;
+    color: var(--carvao);
+    line-height: 1.4;
+  }
+
+  .comp-cell {
+    padding: 12px 20px;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .comp-check svg {
+    display: inline-block;
+  }
+
+  .comp-dash-icon {
+    color: var(--text-muted);
+    font-size: 16px;
+  }
+
+  .comp-value {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--ardosia);
+    font-weight: 500;
+  }
+
+  .comp-featured-col {
+    background: rgba(0,197,180,0.03);
+  }
+</style>

@@ -1,0 +1,640 @@
+---
+/**
+ * AreasCarousel.astro
+ * Carousel by area (Atendimento, Vendas, Marketing, IA).
+ * Dark background section with glass-dark cards and vanilla JS carousel.
+ */
+---
+
+<section class="areas-carousel" id="areasCarousel">
+  <div class="areas-carousel__container">
+    <header class="areas-carousel__header">
+      <span class="areas-carousel__eyebrow">Solucao por area</span>
+      <h2 class="areas-carousel__title">
+        Quatro frentes. Um <em>sistema</em>.
+      </h2>
+      <p class="areas-carousel__subtitle">
+        Cada area do seu comercial tem funcionalidades especificas dentro da Voe.
+      </p>
+    </header>
+
+    <!-- Area 1 - Atendimento -->
+    <div class="area-block" data-area="atendimento">
+      <span class="area-block__badge">Atendimento</span>
+      <div class="area-block__card glass-dark">
+        <div class="area-block__slides">
+          <div class="area-block__slide active" data-slide="0">
+            <div class="area-block__grid">
+              <div class="area-block__text">
+                <h3>O melhor inbox de <em>WhatsApp</em> do mercado</h3>
+                <p>Interface construida para quem faz atendimento comercial o dia inteiro no WhatsApp. Conversa em primeiro plano, contexto do lead ao lado.</p>
+              </div>
+              <div class="area-block__mock">
+                <span>Screenshot em breve</span>
+              </div>
+            </div>
+          </div>
+          <div class="area-block__slide" data-slide="1">
+            <div class="area-block__grid">
+              <div class="area-block__text">
+                <h3><em>Contexto</em> completo do lead ao lado</h3>
+                <p>Dados do contato, historico da oportunidade, atividades pendentes e arquivos. Tudo visivel sem sair da conversa.</p>
+              </div>
+              <div class="area-block__mock">
+                <span>Screenshot em breve</span>
+              </div>
+            </div>
+          </div>
+          <div class="area-block__slide" data-slide="2">
+            <div class="area-block__grid">
+              <div class="area-block__text">
+                <h3>Transferencia sem perder <em>historico</em></h3>
+                <p>Passa o atendimento entre vendedores com todo o contexto. Quem recebe continua de onde parou.</p>
+              </div>
+              <div class="area-block__mock">
+                <span>Screenshot em breve</span>
+              </div>
+            </div>
+          </div>
+          <div class="area-block__slide" data-slide="3">
+            <div class="area-block__grid">
+              <div class="area-block__text">
+                <h3>Follow-up que <em>nao esquece</em></h3>
+                <p>Agende envio de WhatsApp para data e hora definidos. Se o cliente responder antes, a Voe cancela o envio automaticamente.</p>
+              </div>
+              <div class="area-block__mock">
+                <span>Screenshot em breve</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="area-block__controls">
+          <span class="area-block__counter" data-counter>1 / 4</span>
+          <div class="area-block__dots">
+            <button class="area-block__dot active" data-dot="0" aria-label="Slide 1"></button>
+            <button class="area-block__dot" data-dot="1" aria-label="Slide 2"></button>
+            <button class="area-block__dot" data-dot="2" aria-label="Slide 3"></button>
+            <button class="area-block__dot" data-dot="3" aria-label="Slide 4"></button>
+          </div>
+          <div class="area-block__arrows">
+            <button class="area-block__arrow" data-prev aria-label="Slide anterior">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button class="area-block__arrow" data-next aria-label="Proximo slide">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Area 2 - Vendas -->
+    <div class="area-block" data-area="vendas">
+      <span class="area-block__badge">Vendas</span>
+      <div class="area-block__card glass-dark">
+        <div class="area-block__slides">
+          <div class="area-block__slide active" data-slide="0">
+            <div class="area-block__grid">
+              <div class="area-block__text">
+                <h3>Funil com <em>visibilidade real</em></h3>
+                <p>Kanban ou lista, multiplos funis, campos personalizados por funil, motivos de perda e de pausa. Tudo em uma tela.</p>
+              </div>
+              <div class="area-block__mock">
+                <span>Screenshot em breve</span>
+              </div>
+            </div>
+          </div>
+          <div class="area-block__slide" data-slide="1">
+            <div class="area-block__grid">
+              <div class="area-block__text">
+                <h3>Oportunidade <em>completa</em></h3>
+                <p>Historico com separacao entre anotacoes e eventos. WhatsApp, atividades, arquivos e campos personalizados na mesma tela.</p>
+              </div>
+              <div class="area-block__mock">
+                <span>Screenshot em breve</span>
+              </div>
+            </div>
+          </div>
+          <div class="area-block__slide" data-slide="2">
+            <div class="area-block__grid">
+              <div class="area-block__text">
+                <h3>Atividades com <em>status</em> e prazos</h3>
+                <p>Tarefas, ligacoes, e-mails, reunioes e visitas. Filtros por status: todas, hoje, atrasadas, agendadas, minhas.</p>
+              </div>
+              <div class="area-block__mock">
+                <span>Screenshot em breve</span>
+              </div>
+            </div>
+          </div>
+          <div class="area-block__slide" data-slide="3">
+            <div class="area-block__grid">
+              <div class="area-block__text">
+                <h3><em>Agenda</em> integrada</h3>
+                <p>Calendario visual com sincronizacao bidirecional com Google Agenda e Apple Agenda. Reunioes e visitas entram automaticamente.</p>
+              </div>
+              <div class="area-block__mock">
+                <span>Screenshot em breve</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="area-block__controls">
+          <span class="area-block__counter" data-counter>1 / 4</span>
+          <div class="area-block__dots">
+            <button class="area-block__dot active" data-dot="0" aria-label="Slide 1"></button>
+            <button class="area-block__dot" data-dot="1" aria-label="Slide 2"></button>
+            <button class="area-block__dot" data-dot="2" aria-label="Slide 3"></button>
+            <button class="area-block__dot" data-dot="3" aria-label="Slide 4"></button>
+          </div>
+          <div class="area-block__arrows">
+            <button class="area-block__arrow" data-prev aria-label="Slide anterior">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button class="area-block__arrow" data-next aria-label="Proximo slide">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Area 3 - Marketing -->
+    <div class="area-block" data-area="marketing">
+      <span class="area-block__badge">Marketing</span>
+      <div class="area-block__card glass-dark">
+        <div class="area-block__slides">
+          <div class="area-block__slide active" data-slide="0">
+            <div class="area-block__grid">
+              <div class="area-block__text">
+                <h3>Marketing e vendas sobre a <em>mesma base</em></h3>
+                <p>Crie audiencias com criterios do CRM e dispare campanhas de WhatsApp e e-mail. Segmentacao, disparo e metricas sem ferramenta externa.</p>
+              </div>
+              <div class="area-block__mock">
+                <span>Screenshot em breve</span>
+              </div>
+            </div>
+          </div>
+          <div class="area-block__slide" data-slide="1">
+            <div class="area-block__grid">
+              <div class="area-block__text">
+                <h3>Campanhas de WhatsApp <em>em massa</em></h3>
+                <p>Disparo via API Oficial da Meta. Fluxo em quatro passos: configuracao, audiencia, template, revisao. Cancela se o cliente responder antes.</p>
+              </div>
+              <div class="area-block__mock">
+                <span>Screenshot em breve</span>
+              </div>
+            </div>
+          </div>
+          <div class="area-block__slide" data-slide="2">
+            <div class="area-block__grid">
+              <div class="area-block__text">
+                <h3>Campanhas de <em>e-mail</em></h3>
+                <p>Mesmo fluxo, mesma audiencia, canal diferente. WhatsApp e e-mail sobre a mesma base de dados, sem exportar lista.</p>
+              </div>
+              <div class="area-block__mock">
+                <span>Screenshot em breve</span>
+              </div>
+            </div>
+          </div>
+          <div class="area-block__slide" data-slide="3">
+            <div class="area-block__grid">
+              <div class="area-block__text">
+                <h3>Automacoes com <em>logica condicional</em></h3>
+                <p>Fluxos disparados por eventos do sistema. Gatilhos, condicoes, atrasos e acoes internas e externas no meio do fluxo.</p>
+              </div>
+              <div class="area-block__mock">
+                <span>Screenshot em breve</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="area-block__controls">
+          <span class="area-block__counter" data-counter>1 / 4</span>
+          <div class="area-block__dots">
+            <button class="area-block__dot active" data-dot="0" aria-label="Slide 1"></button>
+            <button class="area-block__dot" data-dot="1" aria-label="Slide 2"></button>
+            <button class="area-block__dot" data-dot="2" aria-label="Slide 3"></button>
+            <button class="area-block__dot" data-dot="3" aria-label="Slide 4"></button>
+          </div>
+          <div class="area-block__arrows">
+            <button class="area-block__arrow" data-prev aria-label="Slide anterior">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button class="area-block__arrow" data-next aria-label="Proximo slide">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Area 4 - Inteligencia artificial -->
+    <div class="area-block" data-area="ia">
+      <span class="area-block__badge">Inteligencia artificial</span>
+      <div class="area-block__card glass-dark">
+        <div class="area-block__slides">
+          <div class="area-block__slide active" data-slide="0">
+            <div class="area-block__grid">
+              <div class="area-block__text">
+                <h3><em>IA</em> que trabalha enquanto seu time vende</h3>
+                <p>A IA le todas as conversas do WhatsApp, entende o contexto e atualiza o CRM automaticamente. Adicional opcional.</p>
+              </div>
+              <div class="area-block__mock">
+                <span>Screenshot em breve</span>
+              </div>
+            </div>
+          </div>
+          <div class="area-block__slide" data-slide="1">
+            <div class="area-block__grid">
+              <div class="area-block__text">
+                <h3>Agente <em>SDR</em> 24 horas no WhatsApp</h3>
+                <p>Atende leads novos, faz perguntas de qualificacao, executa follow-ups e reengaja quem parou de responder. Encaminha com contexto completo. Adicional opcional.</p>
+              </div>
+              <div class="area-block__mock">
+                <span>Screenshot em breve</span>
+              </div>
+            </div>
+          </div>
+          <div class="area-block__slide" data-slide="2">
+            <div class="area-block__grid">
+              <div class="area-block__text">
+                <h3>Audios <em>transcritos</em> automaticamente</h3>
+                <p>Transcreve audios recebidos e enviados nas conversas do WhatsApp. A transcricao fica ao lado da mensagem original. Adicional opcional.</p>
+              </div>
+              <div class="area-block__mock">
+                <span>Screenshot em breve</span>
+              </div>
+            </div>
+          </div>
+          <div class="area-block__slide" data-slide="3">
+            <div class="area-block__grid">
+              <div class="area-block__text">
+                <h3><em>Relatorios</em> executivos com IA</h3>
+                <p>A IA analisa os dados do CRM, as conversas e o historico do pipeline para gerar relatorios prontos para o gestor. Desempenho do time, saude do funil, gargalos e tendencias. Adicional opcional.</p>
+              </div>
+              <div class="area-block__mock">
+                <span>Screenshot em breve</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="area-block__controls">
+          <span class="area-block__counter" data-counter>1 / 4</span>
+          <div class="area-block__dots">
+            <button class="area-block__dot active" data-dot="0" aria-label="Slide 1"></button>
+            <button class="area-block__dot" data-dot="1" aria-label="Slide 2"></button>
+            <button class="area-block__dot" data-dot="2" aria-label="Slide 3"></button>
+            <button class="area-block__dot" data-dot="3" aria-label="Slide 4"></button>
+          </div>
+          <div class="area-block__arrows">
+            <button class="area-block__arrow" data-prev aria-label="Slide anterior">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button class="area-block__arrow" data-next aria-label="Proximo slide">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+  (function () {
+    var section = document.getElementById('areasCarousel');
+    if (!section) return;
+
+    var blocks = section.querySelectorAll('.area-block');
+
+    blocks.forEach(function (block) {
+      var slides = block.querySelectorAll('.area-block__slide');
+      var dots = block.querySelectorAll('.area-block__dot');
+      var counter = block.querySelector('[data-counter]');
+      var prevBtn = block.querySelector('[data-prev]');
+      var nextBtn = block.querySelector('[data-next]');
+      var total = slides.length;
+      var current = 0;
+
+      function goTo(index) {
+        if (index < 0) index = total - 1;
+        if (index >= total) index = 0;
+
+        slides[current].style.opacity = '0';
+        dots[current].classList.remove('active');
+
+        setTimeout(function () {
+          slides[current].classList.remove('active');
+          current = index;
+          slides[current].classList.add('active');
+          dots[current].classList.add('active');
+          if (counter) counter.textContent = (current + 1) + ' / ' + total;
+
+          // Force reflow then fade in
+          void slides[current].offsetWidth;
+          slides[current].style.opacity = '1';
+        }, 200);
+      }
+
+      dots.forEach(function (dot) {
+        dot.addEventListener('click', function () {
+          var idx = parseInt(dot.getAttribute('data-dot'), 10);
+          if (idx !== current) goTo(idx);
+        });
+      });
+
+      if (prevBtn) {
+        prevBtn.addEventListener('click', function () {
+          goTo(current - 1);
+        });
+      }
+
+      if (nextBtn) {
+        nextBtn.addEventListener('click', function () {
+          goTo(current + 1);
+        });
+      }
+    });
+  })();
+</script>
+
+<style>
+  /* ---- Section ---- */
+  .areas-carousel {
+    background: #1f3046;
+    color: var(--text-on-dark);
+    padding: var(--space-4xl) 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .areas-carousel::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120%;
+    height: 80%;
+    background: radial-gradient(ellipse at center, rgba(0, 197, 180, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .areas-carousel__container {
+    max-width: var(--container-max);
+    margin: 0 auto;
+    padding: 0 var(--container-padding);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ---- Header ---- */
+  .areas-carousel__header {
+    text-align: center;
+    margin-bottom: var(--space-3xl);
+  }
+
+  .areas-carousel__eyebrow {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-on-dark-secondary);
+    margin-bottom: var(--space-sm);
+  }
+
+  .areas-carousel__eyebrow::before {
+    content: '\2014';
+    color: var(--turquesa);
+    margin-right: 0.5em;
+  }
+
+  .areas-carousel__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+    font-weight: 700;
+    color: var(--text-on-dark);
+    line-height: 1.15;
+    margin: var(--space-xs) 0 var(--space-md);
+  }
+
+  .areas-carousel__title em {
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--turquesa);
+  }
+
+  .areas-carousel__subtitle {
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    color: var(--text-on-dark-secondary);
+    max-width: 520px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ---- Area block ---- */
+  .area-block {
+    margin-bottom: var(--space-3xl);
+  }
+
+  .area-block:last-child {
+    margin-bottom: 0;
+  }
+
+  .area-block__badge {
+    display: inline-block;
+    padding: 5px 14px;
+    border-radius: var(--radius-full);
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: rgba(224, 66, 42, 0.14);
+    color: #f2816e;
+    margin-bottom: var(--space-md);
+  }
+
+  .area-block__card {
+    border-radius: 14px;
+    padding: var(--space-xl);
+    background: var(--glass-dark-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-dark-border);
+  }
+
+  /* ---- Slides ---- */
+  .area-block__slides {
+    position: relative;
+    min-height: 320px;
+  }
+
+  .area-block__slide {
+    display: none;
+    opacity: 0;
+    transition: opacity 200ms ease;
+  }
+
+  .area-block__slide.active {
+    display: block;
+    opacity: 1;
+  }
+
+  /* ---- Grid (2-col: 30% text / 70% mock) ---- */
+  .area-block__grid {
+    display: grid;
+    grid-template-columns: 30% 1fr;
+    gap: var(--space-xl);
+    align-items: center;
+  }
+
+  .area-block__text h3 {
+    font-family: var(--font-display);
+    font-size: clamp(1.15rem, 2vw, 1.4rem);
+    font-weight: 700;
+    color: var(--text-on-dark);
+    line-height: 1.25;
+    margin-bottom: var(--space-md);
+  }
+
+  .area-block__text h3 em {
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--turquesa);
+  }
+
+  .area-block__text p {
+    font-size: 0.95rem;
+    color: var(--text-on-dark-secondary);
+    line-height: 1.65;
+  }
+
+  .area-block__mock {
+    background: rgba(237, 239, 234, 0.03);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .area-block__mock span {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text-on-dark-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* ---- Controls ---- */
+  .area-block__controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: var(--space-lg);
+    padding-top: var(--space-md);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .area-block__counter {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-on-dark-muted);
+    letter-spacing: 0.04em;
+    min-width: 40px;
+  }
+
+  .area-block__dots {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .area-block__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: background 200ms ease, transform 200ms ease;
+  }
+
+  .area-block__dot:hover {
+    background: rgba(255, 255, 255, 0.4);
+  }
+
+  .area-block__dot.active {
+    background: var(--turquesa);
+    transform: scale(1.25);
+  }
+
+  .area-block__arrows {
+    display: flex;
+    gap: 6px;
+  }
+
+  .area-block__arrow {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-on-dark-secondary);
+    cursor: pointer;
+    transition: background 200ms ease, color 200ms ease, border-color 200ms ease;
+    padding: 0;
+  }
+
+  .area-block__arrow:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.18);
+    color: var(--text-on-dark);
+  }
+
+  /* ---- Mobile ---- */
+  @media (max-width: 768px) {
+    .areas-carousel {
+      padding: var(--space-3xl) 0;
+    }
+
+    .areas-carousel__header {
+      margin-bottom: var(--space-2xl);
+    }
+
+    .area-block__card {
+      padding: var(--space-md);
+    }
+
+    .area-block__grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-md);
+    }
+
+    .area-block__slides {
+      min-height: auto;
+    }
+
+    .area-block__mock {
+      min-height: 220px;
+    }
+
+    .area-block__controls {
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+
+    .area-block {
+      margin-bottom: var(--space-2xl);
+    }
+  }
+</style>

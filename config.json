@@ -1,0 +1,19 @@
+{
+  "project_name": "voe-crm",
+  "project_slug": "voe",
+  "client": "Voe CRM",
+  "environment": "development",
+  "tracking": {
+    "gtm_id": "",
+    "enabled": false
+  },
+  "whatsapp": {
+    "number": "5511999803580",
+    "url": "https://wa.me/5511999803580"
+  },
+  "meta": {
+    "created_at": "2026-04-25",
+    "last_updated": "2026-04-29",
+    "owner": "Michel"
+  }
+}

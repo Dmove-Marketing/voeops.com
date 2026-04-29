@@ -1,0 +1,402 @@
+---
+// PricingSimulator.astro — Interactive pricing calculator
+---
+
+<section class="sim-section" id="simulador">
+  <div class="container">
+    <div class="eyebrow" data-animate="fade-up">Simulador</div>
+    <h2 class="section-title" data-animate="fade-up" data-delay="0.1">Simule o investimento da sua <em>operação</em></h2>
+    <p class="section-sub" data-animate="fade-up" data-delay="0.2">Escolha o ciclo de cobrança e o número de usuários. Os valores abaixo atualizam automaticamente para cada plano.</p>
+
+    <div class="sim-controls" data-animate="fade-up" data-delay="0.3">
+      <div class="sim-toggle" role="tablist">
+        <button type="button" class="sim-toggle-btn is-active" data-sim-cycle="mensal">Mensal</button>
+        <button type="button" class="sim-toggle-btn" data-sim-cycle="anual">Anual <span class="sim-tag">−15%</span></button>
+      </div>
+      <div class="sim-stepper">
+        <label class="sim-stepper-label">Usuários</label>
+        <button class="sim-step-btn" data-sim-action="minus" aria-label="Menos">−</button>
+        <span class="sim-user-count" id="simUsers">3</span>
+        <button class="sim-step-btn" data-sim-action="plus" aria-label="Mais">+</button>
+      </div>
+    </div>
+
+    <div class="sim-grid" id="simGrid">
+      <div class="sim-card" data-plan="starter">
+        <div class="sim-plan-name">Starter</div>
+        <div class="sim-price"><span class="sim-cur">R$</span> <span class="sim-val" data-sim-total>387</span><span class="sim-period"> /mês</span></div>
+        <div class="sim-detail" data-sim-detail>3 usuários × R$ 129</div>
+      </div>
+      <div class="sim-card" data-plan="growth">
+        <div class="sim-plan-name">Growth</div>
+        <div class="sim-price"><span class="sim-cur">R$</span> <span class="sim-val" data-sim-total>687</span><span class="sim-period"> /mês</span></div>
+        <div class="sim-detail" data-sim-detail>3 usuários × R$ 229</div>
+      </div>
+      <div class="sim-card sim-card--featured" data-plan="scale">
+        <span class="sim-best">Mais escolhido</span>
+        <div class="sim-plan-name">Scale</div>
+        <div class="sim-price"><span class="sim-cur">R$</span> <span class="sim-val" data-sim-total>1.686</span><span class="sim-period"> /mês</span></div>
+        <div class="sim-detail" data-sim-detail>3 × R$ 329 + R$ 699 base</div>
+      </div>
+    </div>
+
+    <div class="sim-addons" data-animate="fade-up" data-delay="0.4">
+      <h3>Adicionais de IA</h3>
+      <p class="sim-addons-sub">Opcionais — Os valores são somados aos totais acima</p>
+      <div class="sim-addon-grid">
+        <label class="sim-addon-item">
+          <input type="checkbox" class="sim-addon-check" data-addon="sdr" />
+          <div class="sim-addon-info">
+            <div class="sim-addon-name">Voe SDR — Agente de IA</div>
+            <div class="sim-addon-desc">Qualifica e faz follow-up no WhatsApp 24/7</div>
+          </div>
+          <div class="sim-addon-price" data-addon-price="sdr">R$ 990 /mês</div>
+        </label>
+        <label class="sim-addon-item">
+          <input type="checkbox" class="sim-addon-check" data-addon="crm" />
+          <div class="sim-addon-info">
+            <div class="sim-addon-name">Voe CRM Inteligente</div>
+            <div class="sim-addon-desc">Atualiza CRM automaticamente — R$ 350 /usuário</div>
+          </div>
+          <div class="sim-addon-price" data-addon-price="crm">R$ 1.050 /mês</div>
+        </label>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  function initSimulator() {
+    const PRICES = {
+      starter: { mensal: { user: 129, base: 0 }, anual: { user: 110, base: 0 } },
+      growth:  { mensal: { user: 229, base: 0 }, anual: { user: 195, base: 0 } },
+      scale:   { mensal: { user: 329, base: 699 }, anual: { user: 280, base: 594 } },
+    };
+
+    const ADDONS = {
+      sdr: { mensal: 990, anual: 841, perUser: false },
+      crm: { mensal: 350, anual: 350, perUser: true },
+    };
+
+    const MIN = 3, MAX = 100;
+    let users = 3;
+    let cycle = 'mensal';
+
+    const usersEl = document.getElementById('simUsers');
+    const grid = document.getElementById('simGrid');
+    if (!grid) return;
+
+    function fmt(n) {
+      return n.toLocaleString('pt-BR');
+    }
+
+    function update() {
+      if (usersEl) usersEl.textContent = String(users);
+
+      Object.entries(PRICES).forEach(([plan, data]) => {
+        const p = data[cycle];
+        const total = p.base + users * p.user;
+        const card = grid.querySelector(`[data-plan="${plan}"]`);
+        if (!card) return;
+        const valEl = card.querySelector('[data-sim-total]');
+        const detEl = card.querySelector('[data-sim-detail]');
+        if (valEl) valEl.textContent = fmt(total);
+        if (detEl) {
+          if (p.base > 0) {
+            detEl.textContent = `${users} × R$ ${fmt(p.user)} + R$ ${fmt(p.base)} base`;
+          } else {
+            detEl.textContent = `${users} usuários × R$ ${fmt(p.user)}`;
+          }
+        }
+      });
+
+      Object.entries(ADDONS).forEach(([key, data]) => {
+        const price = data.perUser ? data[cycle] * users : data[cycle];
+        const el = document.querySelector(`[data-addon-price="${key}"]`);
+        if (el) el.textContent = `R$ ${fmt(price)} /mês`;
+      });
+    }
+
+    // Toggle cycle
+    document.querySelectorAll('[data-sim-cycle]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        cycle = btn.dataset.simCycle;
+        document.querySelectorAll('[data-sim-cycle]').forEach(b => b.classList.toggle('is-active', b === btn));
+        update();
+      });
+    });
+
+    // Stepper
+    document.querySelectorAll('[data-sim-action]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.simAction === 'plus' && users < MAX) users++;
+        if (btn.dataset.simAction === 'minus' && users > MIN) users--;
+        update();
+      });
+    });
+
+    update();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSimulator);
+  } else {
+    initSimulator();
+  }
+</script>
+
+<style>
+  .sim-section {
+    background: var(--off-white);
+    padding: 110px 0;
+    scroll-margin-top: 80px;
+  }
+
+  .sim-section .section-title em {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--turquesa);
+  }
+
+  .sim-section .section-sub {
+    font-size: 18px;
+    color: var(--carvao-light);
+    max-width: 620px;
+    margin-top: 18px;
+    line-height: 1.5;
+  }
+
+  .sim-controls {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    margin-top: 48px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .sim-toggle {
+    display: inline-flex;
+    padding: 4px;
+    gap: 2px;
+    background: white;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-full);
+  }
+
+  .sim-toggle-btn {
+    padding: 9px 22px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--carvao-light);
+    border-radius: var(--radius-full);
+    transition: all 0.18s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .sim-toggle-btn.is-active {
+    background: var(--ardosia);
+    color: white;
+    font-weight: 600;
+  }
+
+  .sim-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--turquesa);
+  }
+
+  .sim-stepper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .sim-stepper-label {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--carvao-light);
+  }
+
+  .sim-step-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    background: white;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--ardosia);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .sim-step-btn:hover {
+    border-color: var(--turquesa);
+    color: var(--turquesa);
+  }
+
+  .sim-user-count {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ardosia);
+    min-width: 40px;
+    text-align: center;
+  }
+
+  .sim-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .sim-card {
+    background: white;
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    padding: 30px 26px;
+    position: relative;
+  }
+
+  .sim-card--featured {
+    border: 1.5px solid var(--turquesa);
+    box-shadow: 0 10px 28px rgba(0,197,180,0.14);
+  }
+
+  .sim-best {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--turquesa);
+    color: #0e2030;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: var(--radius-full);
+    white-space: nowrap;
+  }
+
+  .sim-plan-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ardosia);
+    margin-bottom: 12px;
+  }
+
+  .sim-price {
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+  }
+
+  .sim-cur {
+    font-size: 14px;
+    color: var(--carvao-light);
+  }
+
+  .sim-val {
+    font-size: 36px;
+    font-weight: 600;
+    color: var(--ardosia);
+    letter-spacing: -0.025em;
+  }
+
+  .sim-period {
+    font-size: 13px;
+    color: var(--carvao-light);
+  }
+
+  .sim-detail {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    font-family: var(--font-mono);
+  }
+
+  .sim-addons {
+    margin-top: 48px;
+    padding-top: 36px;
+    border-top: 1px solid var(--glass-border);
+  }
+
+  .sim-addons h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--ardosia);
+    margin-bottom: 6px;
+  }
+
+  .sim-addons-sub {
+    font-size: 14px;
+    color: var(--carvao-light);
+    margin-bottom: 24px;
+  }
+
+  .sim-addon-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .sim-addon-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    background: white;
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  .sim-addon-item:hover {
+    border-color: var(--turquesa);
+  }
+
+  .sim-addon-check {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--turquesa);
+    flex-shrink: 0;
+  }
+
+  .sim-addon-info {
+    flex: 1;
+  }
+
+  .sim-addon-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ardosia);
+  }
+
+  .sim-addon-desc {
+    font-size: 12.5px;
+    color: var(--carvao-light);
+    margin-top: 2px;
+  }
+
+  .sim-addon-price {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--turquesa);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 768px) {
+    .sim-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

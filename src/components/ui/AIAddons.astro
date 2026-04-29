@@ -1,0 +1,226 @@
+---
+// AIAddons.astro — AI add-on cards for Planos page
+---
+
+<section class="ia-section" id="ia">
+  <div class="container">
+    <div class="eyebrow" data-animate="fade-up">Inteligência artificial</div>
+    <h2 class="section-title" data-animate="fade-up" data-delay="0.1">Adicionais opcionais de <em>IA</em></h2>
+    <p class="section-sub" data-animate="fade-up" data-delay="0.2">Cobrados separadamente por conta do custo variável de tokens. Podem ser contratados de forma independente.</p>
+
+    <div class="ia-grid" data-animate="fade-up" data-delay="0.3">
+      <div class="ia-card">
+        <div class="ia-card-header">
+          <span class="ia-badge">Agente de IA</span>
+          <h3>Voe SDR</h3>
+        </div>
+        <p class="ia-desc">Agente autônomo que atende, qualifica e faz follow-up de leads no WhatsApp 24/7, com handoff para o vendedor humano quando o lead está pronto.</p>
+        <div class="ia-price">
+          <span class="ia-price-label">Mensalidade</span>
+          <div class="ia-price-row">
+            <span class="ia-cur">R$</span><span class="ia-val">990</span><span class="ia-period"> /mês</span>
+          </div>
+          <div class="ia-price-note">R$ 841 /mês no plano anual</div>
+        </div>
+        <div class="ia-sep"></div>
+        <ul class="ia-features">
+          <li><span class="ia-check">✓</span> Qualificação e follow-up automáticos</li>
+          <li><span class="ia-check">✓</span> Playbook, base de conhecimento e critérios configuráveis</li>
+          <li><span class="ia-check">✓</span> 1 alteração de processo comercial por mês inclusa</li>
+          <li><span class="ia-check">✓</span> Sujeito a teto de tokens por mês</li>
+        </ul>
+      </div>
+
+      <div class="ia-card">
+        <div class="ia-card-header">
+          <span class="ia-badge">Observador</span>
+          <h3>Voe CRM Inteligente</h3>
+        </div>
+        <p class="ia-desc">Observador que lê todas as conversas do sistema e atualiza o CRM sozinho. Resolve a dor número um do gestor comercial: vendedor que não atualiza o sistema.</p>
+        <div class="ia-price">
+          <span class="ia-price-label">Mensalidade</span>
+          <div class="ia-price-row">
+            <span class="ia-cur">R$</span><span class="ia-val">350</span><span class="ia-period"> /usuário/mês</span>
+          </div>
+          <div class="ia-price-note">Sem cobrança de setup</div>
+        </div>
+        <div class="ia-sep"></div>
+        <ul class="ia-features">
+          <li><span class="ia-check">✓</span> Extrai dados de contato e atualiza campos da oportunidade</li>
+          <li><span class="ia-check">✓</span> Move etapa do funil automaticamente</li>
+          <li><span class="ia-check">✓</span> Adiciona tags e registra objeções, urgência e sinais de compra</li>
+          <li><span class="ia-check">✓</span> Notifica o vendedor quando precisa de atenção humana</li>
+          <li><span class="ia-check">✓</span> Opera também sobre conversas de atendentes humanos</li>
+          <li><span class="ia-check">✓</span> Sujeito a teto de tokens por mês</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .ia-section {
+    background: var(--ardosia);
+    color: var(--off-white);
+    padding: 130px 0;
+    scroll-margin-top: 80px;
+  }
+
+  .ia-section .eyebrow {
+    color: var(--turquesa);
+  }
+
+  .ia-section .eyebrow::before {
+    background: var(--turquesa);
+  }
+
+  .ia-section .section-title {
+    color: var(--off-white);
+  }
+
+  .ia-section .section-title em {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--turquesa);
+  }
+
+  .ia-section .section-sub {
+    color: rgba(237, 239, 234, 0.7);
+    font-size: 18px;
+    max-width: 620px;
+    margin-top: 18px;
+    line-height: 1.5;
+  }
+
+  .ia-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    margin-top: 56px;
+  }
+
+  .ia-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(0,197,180,0.20);
+    border-radius: 14px;
+    padding: 36px 32px;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.15s;
+  }
+
+  .ia-card:hover {
+    border-color: rgba(0,197,180,0.45);
+  }
+
+  .ia-card-header {
+    margin-bottom: 16px;
+  }
+
+  .ia-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--turquesa);
+    padding: 4px 10px;
+    background: rgba(0,197,180,0.14);
+    border-radius: 3px;
+    margin-bottom: 12px;
+  }
+
+  .ia-card h3 {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: #fff;
+  }
+
+  .ia-desc {
+    font-size: 14px;
+    line-height: 1.55;
+    color: rgba(237, 239, 234, 0.7);
+    margin-bottom: 24px;
+  }
+
+  .ia-price {
+    margin-bottom: 24px;
+  }
+
+  .ia-price-label {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(237,239,234,0.6);
+    margin-bottom: 8px;
+  }
+
+  .ia-price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+  }
+
+  .ia-cur {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(237,239,234,0.7);
+  }
+
+  .ia-val {
+    font-size: 36px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.025em;
+  }
+
+  .ia-period {
+    font-size: 13px;
+    color: rgba(237,239,234,0.6);
+  }
+
+  .ia-price-note {
+    font-size: 12.5px;
+    color: var(--turquesa);
+    margin-top: 4px;
+    font-family: var(--font-mono);
+  }
+
+  .ia-sep {
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+    margin-bottom: 20px;
+  }
+
+  .ia-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .ia-features li {
+    font-size: 13px;
+    color: rgba(237, 239, 234, 0.78);
+    line-height: 1.5;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .ia-check {
+    color: var(--turquesa);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 768px) {
+    .ia-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,269 @@
+---
+// src/components/forms/LeadForm.astro
+// Formulário de captura de leads reutilizável
+// Integra com form-service API + DataLayer events + UTM tracking
+
+interface Props {
+  formId: string;
+  project: string;
+  apiUrl: string;
+  redirectUrl?: string;
+  submitText?: string;
+  fields?: Array<{
+    name: string;
+    type: string;
+    placeholder: string;
+    required?: boolean;
+  }>;
+  class?: string;
+}
+
+const {
+  formId,
+  project,
+  apiUrl,
+  redirectUrl,
+  submitText = 'Enviar',
+  fields = [
+    { name: 'nome', type: 'text', placeholder: 'Seu nome completo', required: true },
+    { name: 'email', type: 'email', placeholder: 'Seu melhor e-mail', required: true },
+    { name: 'telefone', type: 'tel', placeholder: 'WhatsApp com DDD', required: true },
+  ],
+  class: className,
+} = Astro.props;
+---
+
+<form
+  id={`form-${formId}`}
+  class:list={['lead-form', className]}
+  data-form-id={formId}
+  data-project={project}
+  data-api-url={apiUrl}
+  data-redirect={redirectUrl}
+>
+  {fields.map((field) => (
+    <div class="form-group">
+      <input
+        type={field.type}
+        name={field.name}
+        placeholder={field.placeholder}
+        required={field.required}
+        class="form-input"
+        autocomplete={
+          field.name === 'email' ? 'email' :
+          field.name === 'telefone' ? 'tel' :
+          field.name === 'nome' ? 'name' : 'off'
+        }
+      />
+    </div>
+  ))}
+
+  <button type="submit" class="btn btn-primary form-submit">
+    <span class="btn-text">{submitText}</span>
+    <span class="btn-loading" style="display:none;">
+      <svg class="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+      </svg>
+      Enviando...
+    </span>
+  </button>
+
+  <p class="form-error" style="display:none;"></p>
+</form>
+
+<script>
+  // Inicializar todos os forms na página
+  function initForms() {
+    const forms = document.querySelectorAll('form[data-form-id]');
+    forms.forEach(formEl => {
+      const form = formEl as HTMLFormElement;
+      let formStarted = false;
+      const formId = form.dataset.formId!;
+      const project = form.dataset.project!;
+      const apiUrl = form.dataset.apiUrl!;
+      const redirectUrl = form.dataset.redirect;
+
+      // Evento: form_start (primeiro foco)
+      form.addEventListener('focusin', () => {
+        if (!formStarted) {
+          formStarted = true;
+          (window as any).dataLayer?.push({
+            event: 'form_start',
+            form_id: formId,
+            project: project,
+          });
+        }
+      });
+
+      // Evento: submit
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const submitBtn = form.querySelector('.form-submit') as HTMLButtonElement;
+        const btnText = form.querySelector('.btn-text') as HTMLElement;
+        const btnLoading = form.querySelector('.btn-loading') as HTMLElement;
+        const errorEl = form.querySelector('.form-error') as HTMLElement;
+
+        // Loading state
+        submitBtn.disabled = true;
+        if (btnText) btnText.style.display = 'none';
+        if (btnLoading) btnLoading.style.display = 'inline-flex';
+        if (errorEl) errorEl.style.display = 'none';
+
+        // Coletar dados do form
+        const formData = new FormData(form);
+        const data: Record<string, string> = {};
+        formData.forEach((value, key) => {
+          data[key] = value.toString();
+        });
+
+        // Anexar dados de tracking
+        const trackingRaw = sessionStorage.getItem('dmove_tracking');
+        const tracking = trackingRaw ? JSON.parse(trackingRaw) : {};
+        const firstVisit = sessionStorage.getItem('dmove_first_visit') || '';
+
+        const payload = {
+          project,
+          form_id: formId,
+          data,
+          tracking: {
+            ...tracking,
+            first_visit: firstVisit,
+            submitted_at: new Date().toISOString(),
+            page_url: window.location.href,
+          },
+        };
+
+        try {
+          const res = await fetch(`${apiUrl}/submit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+
+          const json = await res.json();
+
+          if (json.success) {
+            // DataLayer: conversão
+            (window as any).dataLayer?.push({
+              event: 'form_submit',
+              form_id: formId,
+              project: project,
+              ...data,
+            });
+
+            // Redirect ou mensagem
+            const redir = redirectUrl || json.redirect;
+            if (redir) {
+              window.location.href = redir;
+            } else {
+              form.innerHTML = `
+                <div class="form-success">
+                  <div class="form-success-icon">✓</div>
+                  <p class="form-success-title">Enviado com sucesso!</p>
+                  <p class="form-success-text">Em breve entraremos em contato.</p>
+                </div>
+              `;
+            }
+          } else {
+            throw new Error(json.error || 'Erro ao enviar');
+          }
+        } catch (err: any) {
+          // DataLayer: erro
+          (window as any).dataLayer?.push({
+            event: 'form_error',
+            form_id: formId,
+            error: err.message,
+          });
+
+          if (errorEl) {
+            errorEl.textContent = 'Erro ao enviar. Tente novamente.';
+            errorEl.style.display = 'block';
+          }
+          submitBtn.disabled = false;
+          if (btnText) btnText.style.display = 'inline';
+          if (btnLoading) btnLoading.style.display = 'none';
+        }
+      });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initForms);
+  } else {
+    initForms();
+  }
+</script>
+
+<style>
+  .lead-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    width: 100%;
+    max-width: 440px;
+  }
+
+  .form-submit {
+    width: 100%;
+    margin-top: var(--space-sm);
+    font-size: 1.05rem;
+    padding: 14px var(--space-xl);
+  }
+
+  .form-submit:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  .btn-loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .spinner {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .form-error {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 4px;
+  }
+
+  .form-success {
+    text-align: center;
+    padding: var(--space-xl);
+  }
+
+  .form-success-icon {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-md);
+    background: var(--gradient-primary);
+    border-radius: 50%;
+    font-size: 1.5rem;
+    color: white;
+  }
+
+  .form-success-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+
+  .form-success-text {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+</style>

@@ -1,0 +1,78 @@
+---
+// src/layouts/Base.astro
+import '../styles/global.css';
+import GTMHead from '../components/tracking/GTMHead.astro';
+import GTMBody from '../components/tracking/GTMBody.astro';
+import UTMCapture from '../components/tracking/UTMCapture.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string;
+  canonical?: string;
+  noIndex?: boolean;
+  jsonLd?: Record<string, any>;
+}
+
+const {
+  title,
+  description = 'Vendas, Marketing, WhatsApp e IA em um so lugar. CRM brasileiro com WhatsApp nativo, automacoes e inteligencia artificial.',
+  ogImage = '/images/og-voe.jpg',
+  canonical,
+  noIndex = false,
+  jsonLd,
+} = Astro.props;
+
+import config from '../../config.json';
+const gtmId = config.tracking?.gtm_id || '';
+const trackingEnabled = config.tracking?.enabled !== false;
+
+const defaultJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: title,
+  description: description,
+  url: canonical || Astro.url.href,
+};
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    {canonical && <link rel="canonical" href={canonical} />}
+    {noIndex && <meta name="robots" content="noindex, nofollow" />}
+
+    <meta property="og:title" content={title} />
+    {description && <meta property="og:description" content={description} />}
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pt_BR" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Preload critical fonts -->
+    <link rel="preload" href="/fonts/geist-latin-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/geist-latin-600.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/geist-latin-700.woff2" as="font" type="font/woff2" crossorigin />
+
+    {trackingEnabled && gtmId && <GTMHead gtmId={gtmId} />}
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd || defaultJsonLd)} />
+
+    <slot name="head" />
+  </head>
+  <body>
+    {trackingEnabled && gtmId && <GTMBody gtmId={gtmId} />}
+    {trackingEnabled && <UTMCapture />}
+
+    <slot />
+
+    <slot name="scripts" />
+  </body>
+</html>
