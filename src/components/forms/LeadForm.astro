@@ -2,6 +2,8 @@
 // src/components/forms/LeadForm.astro
 // Formulário de captura de leads reutilizável
 // Integra com form-service API + DataLayer events + UTM tracking
+import config from '../../../config.json';
+const slug = config.project_slug || 'site';
 
 interface Props {
   formId: string;
@@ -40,6 +42,7 @@ const {
   data-project={project}
   data-api-url={apiUrl}
   data-redirect={redirectUrl}
+  data-slug={slug}
 >
   {fields.map((field) => (
     <div class="form-group">
@@ -82,6 +85,7 @@ const {
       const project = form.dataset.project!;
       const apiUrl = form.dataset.apiUrl!;
       const redirectUrl = form.dataset.redirect;
+      const slug = form.dataset.slug || 'site';
 
       // Evento: form_start (primeiro foco)
       form.addEventListener('focusin', () => {
@@ -118,9 +122,9 @@ const {
         });
 
         // Anexar dados de tracking
-        const trackingRaw = sessionStorage.getItem('voe_tracking');
+        const trackingRaw = sessionStorage.getItem(`${slug}_tracking`);
         const tracking = trackingRaw ? JSON.parse(trackingRaw) : {};
-        const firstVisit = sessionStorage.getItem('voe_first_visit') || '';
+        const firstVisit = sessionStorage.getItem(`${slug}_first_visit`) || '';
 
         const payload = {
           project,

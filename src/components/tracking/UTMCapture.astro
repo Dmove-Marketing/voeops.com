@@ -2,9 +2,11 @@
 // src/components/tracking/UTMCapture.astro
 // Captura UTMs, click IDs e referrer da URL e salva em sessionStorage
 // Dados são enviados junto com cada formulário para atribuição de campanhas
+import config from '../../../config.json';
+const slug = config.project_slug || 'site';
 ---
 
-<script>
+<script define:vars={{ slug }}>
   (function() {
     const params = new URLSearchParams(window.location.search);
 
@@ -17,7 +19,7 @@
     // Click IDs (Google Ads, Meta, TikTok, Bing, etc.)
     const clickIdKeys = ['gclid', 'fbclid', 'sck', 'ttclid', 'msclkid'];
 
-    const trackingData: Record<string, string> = {};
+    const trackingData = {};
 
     // Capturar UTMs
     utmKeys.forEach(key => {
@@ -41,14 +43,14 @@
     trackingData['landing_url'] = window.location.href.split('?')[0];
 
     // Timestamp da primeira visita na sessão
-    if (!sessionStorage.getItem('voe_first_visit')) {
-      sessionStorage.setItem('voe_first_visit', new Date().toISOString());
+    if (!sessionStorage.getItem('${slug}_first_visit')) {
+      sessionStorage.setItem('${slug}_first_visit', new Date().toISOString());
     }
 
     // Salvar em sessionStorage (só se tiver dados novos de UTM/click)
     const hasNewParams = utmKeys.some(k => trackingData[k]) || clickIdKeys.some(k => trackingData[k]);
     if (hasNewParams) {
-      sessionStorage.setItem('voe_tracking', JSON.stringify(trackingData));
+      sessionStorage.setItem('${slug}_tracking', JSON.stringify(trackingData));
     }
 
     // Push para DataLayer
