@@ -35,19 +35,18 @@ const testimonials = [
 
   <!-- HERO -->
   <section class="hero">
-    <div class="hero-grid-bg"></div>
-    <div class="container hero-content">
+    <div class="container">
       <div class="hero-eyebrow" data-animate="fade-up">
-        <span class="hero-dot"></span> Plataforma brasileira · WhatsApp nativo
+        <span class="dot"></span> Plataforma brasileira · WhatsApp nativo
       </div>
       <h1 class="hero-title" data-animate="fade-up" data-delay="0.1">
-        Vendas, Marketing,<br/>WhatsApp e IA.<br/><span class="hero-last">Em um só lugar.</span>
+        Vendas, Marketing,<br>WhatsApp e IA.<br><span class="last">Em um só lugar.</span>
       </h1>
       <p class="hero-sub" data-animate="fade-up" data-delay="0.2">
         CRM, inbox de WhatsApp, campanhas e automações em um único sistema. Para PME brasileiro que vende pelo WhatsApp.
       </p>
       <div class="hero-cta-row" data-animate="fade-up" data-delay="0.3">
-        <a href="https://wa.me/5511999803580" target="_blank" rel="noopener" class="btn btn-primary btn-lg" data-cta="hero-demo">
+        <a href="https://wa.me/5511999803580" target="_blank" rel="noopener" class="btn btn-primary btn-lg" data-cta="hero-demo" data-chat-intent="demo">
           Agendar demonstração <span class="btn-arrow">→</span>
         </a>
         <a href="#produto" class="btn btn-ghost-light btn-lg">Explorar recursos</a>
@@ -63,7 +62,7 @@ const testimonials = [
     <div class="container">
       <div class="problem-head" data-animate="fade-up">
         <div class="eyebrow eyebrow--terracotta">O problema</div>
-        <h2 class="problem-title">Três contratos<br/>para fazer uma coisa:<br/><em>vender.</em></h2>
+        <h2 class="problem-title">Três ferramentas<br/>para fazer uma coisa:<br/><em>vender.</em></h2>
         <p class="problem-lead">Três logins, três faturas, três bases de dados que não conversam entre si. Lead frio que ninguém reengaja. Campanha que não usa os dados do CRM. Vendedor que não atualiza o sistema. <strong>A Voe resolve isso em um sistema só.</strong></p>
       </div>
 
@@ -111,7 +110,7 @@ const testimonials = [
           <div class="stack-cap stack-cap--turquesa">Com a Voe · um contrato</div>
           <div class="stack-one">
             <div class="stack-one-label">Tudo em um só sistema</div>
-            <img src="/images/logo-voe.png" alt="Voe" class="stack-one-logo" />
+            <img src="/images/logo-voe2.svg" alt="Voe" class="stack-one-logo" />
             <div class="stack-modules">
               <span>CRM</span>
               <span>WhatsApp</span>
@@ -235,11 +234,8 @@ const testimonials = [
       linear-gradient(180deg, #1f3046 0%, #243345 50%, #2a3b50 100%);
     color: var(--off-white);
   }
-
-  .hero-grid-bg {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
+  .hero::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
     background-image:
       linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
@@ -247,93 +243,55 @@ const testimonials = [
     mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, #000 30%, transparent 80%);
     -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, #000 30%, transparent 80%);
   }
-
-  .hero-content {
+  .hero .container {
     position: relative;
     z-index: 2;
   }
-
   .hero-eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+    display: inline-flex; align-items: center; gap: 8px;
     padding: 6px 14px 6px 10px;
     background: rgba(255,255,255,0.06);
     border: 1px solid rgba(0, 197, 180, 0.30);
     border-radius: 100px;
-    font-size: 12.5px;
-    color: rgba(237,239,234,0.92);
+    font-size: 12.5px; color: rgba(237,239,234,0.92);
     margin-bottom: 36px;
     backdrop-filter: blur(8px);
   }
-
-  .hero-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
+  .hero-eyebrow .dot {
+    width: 6px; height: 6px; border-radius: 50%;
     background: var(--turquesa);
     box-shadow: 0 0 0 4px rgba(0, 197, 180, 0.18);
   }
-
   .hero-title {
     font-family: var(--font-display);
     font-size: clamp(48px, 7.4vw, 104px);
-    line-height: 0.98;
-    letter-spacing: -0.045em;
-    font-weight: 600;
-    color: #fff;
-    max-width: 1100px;
-    margin-bottom: 36px;
+    line-height: 0.98; letter-spacing: -0.045em; font-weight: 600;
+    color: #fff; max-width: 1100px; margin-bottom: 36px;
     text-wrap: balance;
   }
-
-  .hero-last {
-    display: block;
-    color: var(--terracotta);
-  }
-
+  .hero-title em { font-family: var(--font-display); font-style: normal; font-weight: 600; color: #fff; }
+  .hero-title .last { display: block; color: var(--terracotta); font-style: normal; }
   .hero-sub {
-    font-size: 21px;
-    line-height: 1.45;
-    color: rgba(237,239,234,0.72);
-    max-width: 600px;
-    margin-bottom: 44px;
+    font-size: 21px; line-height: 1.45; color: rgba(237,239,234,0.72);
+    max-width: 600px; margin-bottom: 44px;
   }
-
   .hero-cta-row {
-    display: flex;
-    gap: 14px;
-    align-items: center;
-    flex-wrap: wrap;
+    display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
   }
 
-  .btn-ghost-light {
-    background: transparent;
-    color: #fff;
-    border: 1px solid rgba(255,255,255,0.22);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-sm);
-    padding: 18px 36px;
-    border-radius: var(--radius-full);
-    font-weight: 600;
-    font-size: 1.05rem;
-    transition: all var(--transition-normal);
+  /* Overrides for buttons inside Hero to match 100% fidelity */
+  .hero .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 11px 18px; border-radius: 6px; font-size: 14px; font-weight: 500;
+    transition: all 0.15s; line-height: 1; gap: 7px;
   }
-
-  .btn-ghost-light:hover {
-    border-color: #fff;
-    background: rgba(255,255,255,0.04);
-  }
-
-  .btn-arrow {
-    transition: transform 0.15s;
-  }
-
-  .btn:hover .btn-arrow {
-    transform: translateX(2px);
-  }
+  .hero .btn-primary { background: var(--turquesa); color: #0e2030; font-weight: 600; border: none; }
+  .hero .btn-primary:hover { background: #1ddccb; }
+  .hero .btn-ghost-light { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.22); }
+  .hero .btn-ghost-light:hover { border-color: #fff; background: rgba(255,255,255,0.04); }
+  .hero .btn-lg { padding: 14px 22px; font-size: 15px; }
+  .hero .btn-arrow { transition: transform 0.15s; }
+  .hero .btn:hover .btn-arrow { transform: translateX(2px); }
 
   /* === PROBLEM SECTION === */
   .problem-section {
@@ -348,50 +306,10 @@ const testimonials = [
     margin-bottom: 72px;
   }
 
-  .eyebrow {
-    font-family: var(--font-mono);
-    font-size: 11.5px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--carvao-light);
-    margin-bottom: 18px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .eyebrow::before {
-    content: "";
-    width: 16px;
-    height: 1px;
-    background: var(--turquesa);
-  }
-
-  .eyebrow--terracotta::before {
-    background: var(--terracotta);
-  }
-
-  .section-title {
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: clamp(34px, 4.4vw, 56px);
-    line-height: 1.04;
-    letter-spacing: -0.035em;
-    color: var(--ardosia);
-    max-width: 800px;
-    text-wrap: balance;
-  }
-
-  .section-title em {
-    font-family: var(--font-serif);
-    font-style: italic;
-    font-weight: 400;
-    color: var(--turquesa);
-  }
 
   .problem-title {
     font-family: var(--font-display);
-    font-size: clamp(40px, 5.6vw, 76px);
+    font-size: clamp(2.5rem, 5.6vw, 4.75rem);
     line-height: 1.0;
     letter-spacing: -0.04em;
     font-weight: 600;
@@ -407,10 +325,10 @@ const testimonials = [
   }
 
   .problem-lead {
-    font-size: 18px;
+    font-size: 1.1rem;
     color: var(--carvao-light);
     max-width: 640px;
-    margin-top: 24px;
+    margin-top: var(--space-xl);
     line-height: 1.55;
   }
 

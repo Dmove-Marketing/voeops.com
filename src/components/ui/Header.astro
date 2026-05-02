@@ -3,25 +3,21 @@
 // Voe CRM header — sticky, dark bg, WhatsApp CTA
 ---
 
-<header class="site-header">
-  <div class="container header-inner">
-    <a href="/" class="header-logo">
-      <img src="/images/logo-voe.png" alt="Voe" class="header-logo-img" />
-    </a>
-
-    <nav class="header-nav" aria-label="Navegacao principal">
-      <ul class="header-links">
-        <li><a href="/#produto" class="header-link">Produto</a></li>
-        <li><a href="/planos" class="header-link">Planos</a></li>
-        <li><a href="/#parceiros" class="header-link">Parceiros</a></li>
-      </ul>
-    </nav>
-
-    <div class="header-actions">
-      <a href="https://app.voeops.com/login" class="header-login">Login</a>
-      <a href="https://wa.me/5511999803580" target="_blank" rel="noopener" class="btn btn-primary header-cta" data-cta="header-cta">
-        Agendar demonstracao
+<header class="nav">
+  <div class="container nav-inner">
+    <div class="nav-left">
+      <a href="/" class="logo" aria-label="Voe">
+        <img src="/images/logo-voe2.svg" alt="Voe" class="logo-mark" />
       </a>
+      <nav class="nav-links">
+        <a href="/#produto">Produto</a>
+        <a href="/planos">Planos</a>
+        <a href="/#parceiros" data-chat-intent="parceria">Parceiros</a>
+      </nav>
+    </div>
+    <div class="nav-right">
+      <a href="https://app.voeops.com/login" target="_blank" rel="noopener" class="login">Login</a>
+      <a href="https://wa.me/5511999803580" target="_blank" rel="noopener" class="btn btn-primary header-cta" data-cta="header-cta" data-chat-intent="demo">Agendar demonstração</a>
       <button class="header-hamburger" aria-label="Menu" aria-expanded="false">
         <span class="hamburger-line"></span>
         <span class="hamburger-line"></span>
@@ -39,7 +35,7 @@
       </ul>
       <a href="https://app.voeops.com/login" class="mobile-login">Login</a>
       <a href="https://wa.me/5511999803580" target="_blank" rel="noopener" class="btn btn-primary mobile-cta" data-cta="mobile-cta">
-        Agendar demonstracao
+        Agendar demonstração
       </a>
     </nav>
   </div>
@@ -47,7 +43,7 @@
 
 <script>
   function initHeader() {
-    const header = document.querySelector('.site-header') as HTMLElement;
+    const header = document.querySelector('header.nav') as HTMLElement;
     const hamburger = document.querySelector('.header-hamburger') as HTMLButtonElement;
     const mobileMenu = document.querySelector('.header-mobile-menu') as HTMLElement;
 
@@ -55,7 +51,11 @@
 
     window.addEventListener('scroll', () => {
       const currentScroll = window.scrollY;
-      header.classList.toggle('header-scrolled', currentScroll > 80);
+      if (currentScroll > 80) {
+        document.body.classList.add('scrolled');
+      } else {
+        document.body.classList.remove('scrolled');
+      }
     });
 
     hamburger?.addEventListener('click', () => {
@@ -89,94 +89,51 @@
 </script>
 
 <style>
-  .site-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    padding: var(--space-md) 0;
-    transition: all 0.3s ease;
-    background: var(--ardosia);
+  /* ——— Header (sobre hero escuro) ——— */
+  header.nav {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 50;
+    background: transparent;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    transition: background 0.3s ease, border-color 0.3s ease;
   }
-
-  .header-scrolled {
-    background: rgba(48, 69, 91, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.15);
-    padding: var(--space-sm) 0;
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; gap: 24px; transition: height 0.3s ease; }
+  .nav-left { display: flex; align-items: center; gap: 40px; }
+  .logo { display: flex; align-items: center; gap: 9px; }
+  .logo-mark { width: 64px; height: auto; display: block; }
+  .logo-word { display: none; }
+  .nav-links { display: flex; gap: 40px; }
+  .nav-links a { font-size: 0.9rem; color: rgba(237,239,234,0.92); font-weight: 500; transition: color 0.15s; }
+  .nav-links a:hover { color: var(--turquesa); }
+  .nav-right { display: flex; align-items: center; gap: 26px; }
+  .nav-right .login { font-size: 0.9rem; color: rgba(237,239,234,0.85); font-weight: 500; transition: color 0.15s; }
+  .nav-right .login:hover { color: var(--turquesa); }
+  .nav-right .btn-primary { 
+    border-radius: 999px; 
+    padding: var(--space-sm) var(--space-xl); 
+    font-size: 0.9rem; 
+    font-weight: 600; 
+    background: var(--turquesa); 
+    color: #0e2030; 
+    border: none; 
+    transition: background 0.15s; 
+    display: inline-flex; 
+    align-items: center; 
+    justify-content: center; 
   }
+  .nav-right .btn-primary:hover { background: #1ddccb; }
 
-  .header-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-xl);
+  /* Sticky nav once user scrolls past hero */
+  :global(body.scrolled) header.nav { 
+    position: fixed; 
+    background: rgba(36, 51, 69, 0.78); 
+    backdrop-filter: blur(16px) saturate(140%); 
+    -webkit-backdrop-filter: blur(16px) saturate(140%); 
+    border-bottom-color: rgba(255,255,255,0.06); 
   }
+  :global(body.scrolled) header.nav .nav-inner { height: 64px; }
 
-  .header-logo-img {
-    height: 36px;
-    width: auto;
-  }
 
-  .header-links {
-    display: flex;
-    gap: var(--space-xl);
-    list-style: none;
-  }
-
-  .header-link {
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: var(--text-on-dark-secondary);
-    transition: color var(--transition-fast);
-    position: relative;
-  }
-
-  .header-link:hover {
-    color: var(--text-on-dark);
-  }
-
-  .header-link::after {
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background: var(--turquesa);
-    transition: width var(--transition-normal);
-    border-radius: 2px;
-  }
-
-  .header-link:hover::after {
-    width: 100%;
-  }
-
-  .header-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--space-md);
-  }
-
-  .header-login {
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: var(--text-on-dark-secondary);
-    transition: color var(--transition-fast);
-  }
-
-  .header-login:hover {
-    color: var(--text-on-dark);
-  }
-
-  .header-cta {
-    font-size: 0.85rem;
-    padding: 10px 20px;
-  }
-
-  /* Hamburger */
+  /* === HAMBURGER (Mobile Only) === */
   .header-hamburger {
     display: none;
     flex-direction: column;
@@ -189,7 +146,7 @@
     display: block;
     width: 100%;
     height: 2px;
-    background: var(--text-on-dark);
+    background: #fff;
     border-radius: 2px;
     transition: all 0.3s ease;
   }
@@ -204,10 +161,10 @@
     transform: rotate(-45deg) translate(5px, -5px);
   }
 
-  /* Mobile menu */
+  /* === MOBILE MENU === */
   .header-mobile-menu {
     position: fixed;
-    top: 60px;
+    top: 60px; /* Adjust according to scrolled height */
     left: 0;
     right: 0;
     bottom: 0;
@@ -229,6 +186,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-lg);
+    margin-bottom: var(--space-md);
   }
 
   .mobile-link {
@@ -252,12 +210,20 @@
     width: 100%;
     margin-top: var(--space-md);
     text-align: center;
+    border-radius: var(--radius-md);
+    padding: var(--space-md) var(--space-xl);
+    font-size: 0.95rem;
+    font-weight: 600;
+    background: var(--turquesa);
+    color: #0e2030;
+    border: none;
   }
 
-  @media (max-width: 768px) {
-    .header-nav { display: none; }
-    .header-cta { display: none; }
-    .header-login { display: none; }
+  /* MEDIA QUERIES */
+  @media (max-width: 900px) {
+    .nav-links { display: none; }
+    .nav-right .btn-primary { display: none; }
+    .nav-right .login { display: none; }
     .header-hamburger { display: flex; }
   }
 </style>

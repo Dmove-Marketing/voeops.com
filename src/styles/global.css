@@ -278,6 +278,70 @@ p {
   color: var(--terracotta);
 }
 
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.section-title em {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--turquesa);
+}
+
+.section-sub {
+  font-size: clamp(1rem, 1.5vw, 1.125rem);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 3rem;
+  max-width: 60ch;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-md);
+  color: var(--eyebrow-color, var(--text-secondary));
+}
+
+.eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 16px;
+  height: 2px;
+  background: var(--eyebrow-icon-color, var(--turquesa));
+  border-radius: 2px;
+}
+
+/* Eyebrow Modifiers */
+.eyebrow--terracotta {
+  --eyebrow-icon-color: var(--terracotta);
+}
+
+.eyebrow--turquesa {
+  --eyebrow-icon-color: var(--turquesa);
+}
+
+.eyebrow--light {
+  --eyebrow-color: var(--text-on-dark-secondary);
+}
+
+.eyebrow--ardosia {
+  --eyebrow-color: var(--ardosia);
+}
+
 .text-turquesa {
   color: var(--turquesa);
 }

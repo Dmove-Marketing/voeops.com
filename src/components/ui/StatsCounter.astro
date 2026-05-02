@@ -92,7 +92,7 @@ const {
   }
 
   .stat-number {
-    font-size: 3rem;
+    font-size: clamp(2.2rem, 5vw, 3rem);
     font-weight: 800;
     line-height: 1;
     letter-spacing: -0.03em;
@@ -106,7 +106,6 @@ const {
   }
 
   @media (max-width: 768px) {
-    .stat-number { font-size: 2.2rem; }
     .stats-counter { gap: var(--space-lg); }
   }
 </style>

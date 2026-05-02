@@ -1,45 +1,40 @@
 ---
-/**
- * ProductTabs.astro
- * Tabbed product showcase with 9 feature tabs.
- */
+// src/components/ui/ProductTabs.astro
+// Tabbed product showcase with 9 feature tabs.
 ---
 
-<section class="product-tabs" id="productTabs">
+<section class="tabs-section" id="produto">
+  <div class="dot-grid-container">
+    <div class="dot-grid-glow-static"></div>
+    <canvas class="dot-grid-canvas"></canvas>
+  </div>
   <div class="container-wide">
-    <header class="product-tabs__header">
-      <span class="eyebrow">Produto em acao</span>
-      <h2 class="product-tabs__title">
-        Explore os principais <em>recursos</em>
-      </h2>
-      <p class="product-tabs__subtitle" id="tabSub">
-        Inbox unificado de WhatsApp e Instagram Direct.
-      </p>
-    </header>
-
-    <div class="tab-bar" role="tablist" aria-label="Recursos do produto">
-      <button class="tab active" role="tab" aria-selected="true" data-tab="conversas">Conversas</button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="negociacoes">Negociacoes</button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="oportunidade">Oportunidade</button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="atividades">Atividades</button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="whatsapp">WhatsApp agendado</button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="agenda">Agenda</button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="audiencias">Audiencias</button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="campanhas">Campanhas</button>
-      <button class="tab" role="tab" aria-selected="false" data-tab="automacoes">Automacoes</button>
-    </div>
-
-    <div class="tab-content" role="tabpanel">
-      <div class="tab-mock">
-        <span class="tab-mock__placeholder">Screenshot em breve</span>
+    <div class="tabs-head">
+      <div>
+        <div class="eyebrow eyebrow--terracotta">Produto em ação</div>
+        <h2 class="section-title">Explore os principais <em>recursos</em></h2>
+        <p class="section-sub" id="tabSub">Inbox unificado de WhatsApp e Instagram Direct.</p>
       </div>
     </div>
-
-    <div class="tab-caption">
-      <h3 class="tab-caption__title" id="tabTitle">Conversas</h3>
-      <p class="tab-caption__desc" id="tabDesc">
-        Inbox unificado de WhatsApp e Instagram Direct.
-      </p>
+    
+    <div class="tabs-bar" id="tabsBar">
+      <button class="tab-btn active" data-tab="conversas">Conversas</button>
+      <button class="tab-btn" data-tab="negociacoes">Negociações</button>
+      <button class="tab-btn" data-tab="oportunidade">Oportunidade</button>
+      <button class="tab-btn" data-tab="atividades">Atividades</button>
+      <button class="tab-btn" data-tab="whatsapp">WhatsApp agendado</button>
+      <button class="tab-btn" data-tab="agenda">Agenda</button>
+      <button class="tab-btn" data-tab="audiencias">Audiências</button>
+      <button class="tab-btn" data-tab="campanhas">Campanhas</button>
+      <button class="tab-btn" data-tab="automacoes">Automações</button>
+    </div>
+    
+    <div class="tabs-body">
+      <div class="tab-screenshot">
+        <div id="tabScreen" class="mock-host">
+          <span class="mock-placeholder">Screenshot em breve</span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -52,8 +47,8 @@
         lead: "Inbox unificado de WhatsApp e Instagram Direct.",
       },
       negociacoes: {
-        title: "Negociacoes",
-        lead: "Funil visual em Kanban ou lista, multiplos funis simultaneos.",
+        title: "Negociações",
+        lead: "Funil visual em Kanban ou lista, múltiplos funis simultâneos.",
       },
       oportunidade: {
         title: "Oportunidade",
@@ -72,26 +67,24 @@
         lead: "Calendario visual sincronizado com o CRM.",
       },
       audiencias: {
-        title: "Audiencias",
-        lead: "Segmentacao avancada de contatos e negociacoes.",
+        title: "Audiências",
+        lead: "Segmentação avancada de contatos e negociações.",
       },
       campanhas: {
         title: "Campanhas",
         lead: "Disparo em massa de WhatsApp e e-mail.",
       },
       automacoes: {
-        title: "Automacoes",
+        title: "Automações",
         lead: "Fluxos disparados por gatilhos do sistema.",
       },
     };
 
-    const section = document.getElementById("productTabs");
+    const section = document.getElementById("produto");
     if (!section) return;
 
-    const tabs = section.querySelectorAll(".tab");
+    const tabs = section.querySelectorAll(".tab-btn");
     const subtitle = document.getElementById("tabSub");
-    const captionTitle = document.getElementById("tabTitle");
-    const captionDesc = document.getElementById("tabDesc");
 
     tabs.forEach(function (tab) {
       tab.addEventListener("click", function () {
@@ -101,197 +94,246 @@
 
         tabs.forEach(function (t) {
           t.classList.remove("active");
-          t.setAttribute("aria-selected", "false");
         });
         tab.classList.add("active");
-        tab.setAttribute("aria-selected", "true");
 
         if (subtitle) subtitle.textContent = data.lead;
-        if (captionTitle) captionTitle.textContent = data.title;
-        if (captionDesc) captionDesc.textContent = data.lead;
       });
     });
+  })();
+
+  // Dot Grid Script
+  (function() {
+    const dpr = window.devicePixelRatio || 1;
+    const SPACING = 32;
+    const RADIUS = 1.2;
+    const DOT_COLOR = 'rgba(48, 69, 91, 0.12)';
+    const GLOW_COLOR = 'rgba(0, 197, 180, 0.15)'; // turquesa glow
+
+    function attach(container) {
+      const canvas = container.querySelector('.dot-grid-canvas') as HTMLCanvasElement;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      
+      const section = container.parentElement;
+      if (!section) return;
+
+      let mouse = { x: -9999, y: -9999 };
+      let dots: Array<{x: number, y: number}> = [];
+      let w = 0, h = 0;
+
+      function resize() {
+        const rect = container.getBoundingClientRect();
+        w = rect.width; h = rect.height;
+        canvas.width = w * dpr; canvas.height = h * dpr;
+        ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+        buildDots();
+      }
+      function buildDots() {
+        dots = [];
+        const cols = Math.ceil(w / SPACING) + 1;
+        const rows = Math.ceil(h / SPACING) + 1;
+        const offX = (w - (cols - 1) * SPACING) / 2;
+        const offY = (h - (rows - 1) * SPACING) / 2;
+
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            dots.push({ x: offX + c * SPACING, y: offY + r * SPACING });
+          }
+        }
+      }
+      function draw() {
+        ctx!.clearRect(0, 0, w, h);
+        for (let i = 0; i < dots.length; i++) {
+          const d = dots[i];
+          const dx = mouse.x - d.x;
+          const dy = mouse.y - d.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          // default dot
+          ctx!.fillStyle = DOT_COLOR;
+          ctx!.beginPath();
+          ctx!.arc(d.x, d.y, RADIUS, 0, Math.PI * 2);
+          ctx!.fill();
+
+          // glow radius interaction
+          const interactionRadius = 140;
+          if (dist < interactionRadius) {
+            const intensity = 1 - (dist / interactionRadius);
+            ctx!.fillStyle = `rgba(0, 197, 180, ${intensity * 0.4})`; // pulse glow
+            ctx!.beginPath();
+            ctx!.arc(d.x, d.y, RADIUS * (1 + intensity * 1.5), 0, Math.PI * 2);
+            ctx!.fill();
+          }
+        }
+        requestAnimationFrame(draw);
+      }
+
+      window.addEventListener('resize', resize);
+      section.addEventListener('mousemove', (e) => {
+        const rect = container.getBoundingClientRect();
+        mouse.x = (e as MouseEvent).clientX - rect.left;
+        mouse.y = (e as MouseEvent).clientY - rect.top;
+      });
+      section.addEventListener('mouseleave', () => {
+        mouse.x = -9999; mouse.y = -9999;
+      });
+
+      resize();
+      draw();
+    }
+    
+    document.querySelectorAll('.dot-grid-container').forEach(attach);
   })();
 </script>
 
 <style>
-  .product-tabs {
-    background: #f5f6f2;
-    border-top: 1px solid var(--glass-border);
-    padding: var(--space-4xl) 0;
+  .tabs-section {
+    --line: rgba(0,0,0,0.06);
+  }
+
+  .tabs-section { 
+    background: var(--bg-secondary); 
+    border-top: 1px solid var(--line); 
+    border-bottom: 0; 
+    position: relative; 
+    overflow: hidden; 
+    padding: 110px 0;
   }
 
   .container-wide {
     max-width: 1360px;
     margin: 0 auto;
-    padding: 0 var(--space-lg);
+    padding: 0 5%;
   }
 
-  /* ---- Header ---- */
-  .product-tabs__header {
-    text-align: center;
-    margin-bottom: var(--space-xl);
+  .tabs-section > .container-wide { position: relative; z-index: 1; }
+
+  .eyebrow::before { background: var(--turquesa); }
+
+  .tabs-head { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: flex-end; 
+    flex-wrap: wrap; 
+    gap: 28px; 
+    margin-bottom: 50px; 
   }
 
-  .eyebrow {
-    display: inline-block;
-    font-family: var(--font-mono);
-    font-size: 11.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--carvao);
-    margin-bottom: var(--space-sm);
+  .tabs-bar { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 4px; 
+    padding: 6px; 
+    background: white; 
+    border: 1px solid var(--line); 
+    border-radius: 10px; 
+    margin-bottom: 32px; 
+  }
+  
+  .tabs-bar .tab-btn { 
+    flex: 1 1 0; 
+    min-width: 0; 
+    text-align: center; 
+    justify-content: center; 
   }
 
-  .eyebrow::before {
-    content: "\2014";
-    color: var(--turquesa);
-    margin-right: 0.5em;
-  }
-
-  .product-tabs__title {
-    font-family: var(--font-display);
-    font-size: clamp(1.75rem, 3vw, 2.5rem);
-    font-weight: 700;
-    color: var(--ardosia);
-    line-height: 1.2;
-    margin: var(--space-xs) 0 var(--space-sm);
-  }
-
-  .product-tabs__title em {
-    font-family: var(--font-serif);
-    font-style: italic;
-    color: var(--turquesa);
-  }
-
-  .product-tabs__subtitle {
-    font-family: var(--font-body);
-    font-size: 1.05rem;
-    color: var(--carvao);
-    opacity: 0.8;
-    max-width: 540px;
-    margin: 0 auto;
-    min-height: 1.6em;
-  }
-
-  /* ---- Tab bar ---- */
-  .tab-bar {
-    display: flex;
-    gap: 4px;
-    background: #fff;
-    border: 1px solid var(--glass-border);
-    border-radius: 10px;
-    padding: 6px;
-    margin-bottom: var(--space-lg);
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-  }
-
-  .tab-bar::-webkit-scrollbar {
-    height: 4px;
-  }
-
-  .tab-bar::-webkit-scrollbar-thumb {
-    background: var(--glass-border);
-    border-radius: var(--radius-full);
-  }
-
-  .tab {
-    flex: 0 0 auto;
-    font-family: var(--font-body);
-    font-size: 0.875rem;
-    font-weight: 500;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 7px;
+  .tab-btn {
+    padding: 9px 14px; 
+    font-size: 0.844rem; 
+    color: var(--text-secondary); 
+    border-radius: 6px;
+    transition: all 0.15s;
     background: transparent;
-    color: var(--carvao);
+    border: none;
     cursor: pointer;
-    white-space: nowrap;
-    transition: background 0.2s, color 0.2s;
+    font-family: inherit;
+  }
+  .tab-btn:hover { color: var(--carvao); }
+  .tab-btn.active { background: var(--ardosia); color: white; }
+  
+  .tabs-body {
+    background: #fff; 
+    border: 1px solid rgba(0,197,180,0.18);
+    border-radius: 12px; 
+    height: clamp(560px, 70vh, 760px);
+    display: flex; 
+    flex-direction: column;
+    padding: 24px;
+    box-shadow: 0 4px 24px rgba(48,69,91,0.06), 0 1px 4px rgba(48,69,91,0.04);
+  }
+  
+  .tab-screenshot {
+    flex: 1; 
+    min-height: 0; 
+    background: #fff; 
+    border-radius: 8px; 
+    border: 1px solid var(--line);
+    overflow: hidden;
   }
 
-  .tab:hover {
-    background: rgba(48, 69, 91, 0.08);
-    color: var(--ardosia);
-  }
-
-  .tab.active {
-    background: var(--ardosia);
-    color: #fff;
-  }
-
-  .tab.active:hover {
-    background: var(--ardosia);
-    color: #fff;
-  }
-
-  /* ---- Content / Mock ---- */
-  .tab-content {
-    margin-bottom: var(--space-lg);
-  }
-
-  .tab-mock {
+  .mock-host { 
+    width: 100%; 
+    height: 100%; 
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #fff;
-    border: 1px solid rgba(0, 197, 180, 0.18);
-    border-radius: 12px;
-    height: clamp(560px, 70vh, 760px);
-    box-shadow: 0 4px 24px rgba(48, 69, 91, 0.06),
-      0 1px 4px rgba(48, 69, 91, 0.04);
   }
 
-  .tab-mock__placeholder {
+  .mock-placeholder {
     font-family: var(--font-mono);
-    font-size: 0.9rem;
-    color: var(--carvao);
-    opacity: 0.4;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    opacity: 0.6;
     text-transform: uppercase;
     letter-spacing: 0.06em;
   }
 
-  /* ---- Caption ---- */
-  .tab-caption {
-    border-top: 1px solid var(--glass-border);
-    padding-top: var(--space-md);
-    display: flex;
-    gap: var(--space-md);
-    align-items: baseline;
-    flex-wrap: wrap;
+
+
+  /* Dot Grid styles */
+  .dot-grid-container {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .dot-grid-container canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .dot-grid-glow-static {
+    position: absolute;
+    top: 15%;
+    left: 50%;
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(0, 197, 180, 0.04) 0%, transparent 65%);
+    filter: blur(50px);
+    pointer-events: none;
+    z-index: 0;
+    transform: translateX(-50%);
   }
 
-  .tab-caption__title {
-    font-family: var(--font-display);
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--ardosia);
-    flex: 0 0 auto;
-  }
-
-  .tab-caption__desc {
-    font-family: var(--font-body);
-    font-size: 0.95rem;
-    color: var(--carvao);
-    opacity: 0.75;
-    flex: 1 1 auto;
-  }
-
-  /* ---- Mobile ---- */
   @media (max-width: 768px) {
-    .product-tabs {
-      padding: var(--space-2xl) 0;
+    .tabs-section {
+      padding: 60px 0;
     }
-
-    .container-wide {
-      padding: 0 var(--space-md);
+    .tabs-bar {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      justify-content: flex-start;
+      border-radius: 8px;
     }
-
-    .tab-caption {
-      flex-direction: column;
-      gap: var(--space-xs);
+    .tabs-bar .tab-btn {
+      flex: 0 0 auto;
     }
   }
 </style>
