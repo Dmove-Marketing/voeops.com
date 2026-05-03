@@ -115,162 +115,339 @@ const categories = [
 ];
 
 const plans = ['Starter', 'Growth', 'Scale', 'Enterprise'];
+
+function renderFeatureName(name: string) {
+  return name.replace('[em breve]', '<span class="soon">em breve</span>');
+}
 ---
 
-<section class="comp-section" id="comparativo">
+<section class="sec-comparativo" id="comparativo">
   <div class="container">
-    <div class="eyebrow" data-animate="fade-up">Comparativo completo</div>
-    <h2 class="section-title" data-animate="fade-up" data-delay="0.1">O que cada plano <em>inclui</em></h2>
-    <p class="section-sub" data-animate="fade-up" data-delay="0.2">Todas as funcionalidades, linha a linha. Itens marcados como "em breve" estão em desenvolvimento.</p>
+    <div class="comp-hd" data-animate="fade-up">
+      <h2>O que cada plano <em>inclui</em></h2>
+      <p>Todas as funcionalidades, linha a linha. Itens marcados como "em breve" estão em desenvolvimento.</p>
+    </div>
 
-    <div class="comp-table-wrap" data-animate="fade-up" data-delay="0.3">
-      <table class="comp-table">
-        <thead>
-          <tr>
-            <th class="comp-feature-col"></th>
-            {plans.map((p, i) => (
-              <th class:list={['comp-plan-col', { 'comp-plan-featured': i === 2 }]}>{p}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {categories.map(cat => (
-            <>
-              <tr class="comp-cat-row">
-                <td colspan="5">{cat.name}</td>
-              </tr>
-              {cat.features.map(row => (
-                <tr>
-                  <td class="comp-feature">{row[0]}</td>
-                  {[1,2,3,4].map(i => (
-                    <td class:list={['comp-cell', {
-                      'comp-check': row[i] === check,
-                      'comp-dash': row[i] === dash,
-                      'comp-featured-col': i === 3,
-                    }]}>
-                      {row[i] === check ? (
-                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L3.8 7.5L8.5 2" stroke="#00C5B4" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                      ) : row[i] === dash ? (
-                        <span class="comp-dash-icon">—</span>
-                      ) : (
-                        <span class="comp-value">{row[i]}</span>
-                      )}
-                    </td>
-                  ))}
-                </tr>
+    <div class="comp-card" data-animate="fade-up" data-delay="0.2">
+      <div class="scroll-gap-mask"></div>
+      <div class="comp-table-wrap">
+        <table class="comp-table">
+          <thead>
+            <tr>
+              <th class="th-corner"></th>
+              {plans.map((p, index) => (
+                <th class={index === 2 ? "th-featured" : ""}>
+                  <div class="th-content-wrap">
+                    {index === 2 && <span class="badge-popular">Mais escolhido</span>}
+                    <div class="plan-col-head">
+                      <span class="plan-col-dot"></span>
+                      <span class="plan-col-name">{p}</span>
+                    </div>
+                  </div>
+                </th>
               ))}
-            </>
-          ))}
-        </tbody>
-      </table>
+            </tr>
+          </thead>
+          <tbody>
+            {categories.map(cat => (
+              <>
+                <tr class="group-row">
+                  <td class="group-name-cell">
+                    <span class="group-row-label">{cat.name}</span>
+                  </td>
+                  <td class="group-cell"></td>
+                  <td class="group-cell"></td>
+                  <td class="group-cell group-cell-featured"></td>
+                  <td class="group-cell"></td>
+                </tr>
+                {cat.features.map(row => (
+                  <tr class="feat-row">
+                    <td class="feat-name" set:html={renderFeatureName(row[0] as string)} />
+                    {[1,2,3,4].map(i => (
+                      <td class={i === 3 ? "feat-cell feat-cell-featured" : "feat-cell"}>
+                        {row[i] === check ? (
+                          <span class="ic-yes">✓</span>
+                        ) : row[i] === dash ? (
+                          <span class="ic-no">—</span>
+                        ) : row[i] === 'Personalizado' ? (
+                          <span class="ic-unlimited">{row[i]}</span>
+                        ) : (
+                          <span class="ic-val">{row[i]}</span>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </section>
 
 <style>
-  .comp-section {
-    background: #F5F6F2;
-    padding: 110px 0;
-    scroll-margin-top: 80px;
+  .sec-comparativo { padding: 130px 0 0; }
+  .comp-hd { margin-bottom: 48px; }
+  .comp-hd h2 {
+    font-family: var(--font-display);
+    font-size: clamp(40px, 5.6vw, 76px); font-weight: 600; color: var(--ardosia);
+    letter-spacing: -0.04em; line-height: 1.0; text-wrap: pretty;
+  }
+  .comp-hd h2 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--terracotta); letter-spacing: -0.02em; }
+  .comp-hd p { font-family: var(--font-body); font-size: 18px; color: var(--charcoal-2); margin-top: 18px; max-width: 580px; line-height: 1.55; text-wrap: pretty; }
+
+  .comp-card {
+    background: #ffffff; /* Fundo totalmente branco forçado */
+    border: 1px solid rgba(0,0,0,0.04);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 12px 32px rgba(48,69,91,0.04);
+    margin-top: 24px; /* Espaço pro badge popular estourar pra fora com folga */
   }
 
-  .comp-section {
-    background: #F5F6F2;
-    padding: 110px 0;
-    scroll-margin-top: 80px;
-  }
-
-  .comp-table-wrap {
-    margin-top: 48px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    border-radius: 14px;
-    border: 1px solid var(--glass-border);
-    background: white;
-  }
-
+  
   .comp-table {
-    width: 100%;
-    min-width: 800px;
-    border-collapse: collapse;
-    font-size: 0.8125rem;
+    width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; background: transparent;
+    table-layout: fixed;
   }
-
-  .comp-table thead th {
-    padding: 18px 20px;
-    text-align: center;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--ardosia);
-    background: #fafbf8;
-    border-bottom: 1px solid var(--glass-border);
+  
+  .scroll-gap-mask {
     position: sticky;
-    top: 0;
+    top: 112px;
+    left: 0;
+    right: 0;
+    height: 48px; /* 18px da fresta + 30px extras para descer atrás do cabeçalho e cobrir os cantos arredondados */
+    background: #EDEFEA;
+    z-index: 4;
+    pointer-events: none;
+    margin-bottom: -48px;
+  }
+  
+  /* STICKY HEADER COM GLASSMORPHISM */
+  .comp-table thead tr th {
+    padding: 30px 8px 10px; /* Mantém o 50/50 do badge */
+    background: rgba(36, 51, 69, 0.60); /* Aumentada a transparência (era 0.78) */
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    position: sticky; 
+    top: 130px; /* Cria a fresta exata de 18px abaixo do AnchorNav */
+    z-index: 5;
+    vertical-align: middle;
+    background-clip: padding-box;
+  }
+  
+  /* ARREDONDAMENTO DAS 4 PONTAS DA TABELA */
+  .comp-table thead tr th:first-child {
+    text-align: left; width: 36%;
+    left: 0; z-index: 6;
+    border-top-left-radius: var(--radius-lg);
+    overflow: hidden; /* Força o recorte do glassmorphism no Safari */
+  }
+  .comp-table thead tr th:last-child {
+    border-top-right-radius: var(--radius-lg);
+    overflow: hidden; /* Força o recorte do glassmorphism no Safari */
+  }
+  
+  .comp-table tbody tr td:first-child {
+    position: sticky; left: 0; z-index: 3;
+    background: #ffffff; /* Para cobrir ao rolar horizontalmente */
+  }
+  .comp-table thead tr th:not(:first-child) {
+    text-align: center; width: 16%;
+    border-left: 1px solid rgba(0,0,0,0.04);
   }
 
-  .comp-feature-col {
-    text-align: left !important;
-    min-width: 280px;
+  .th-content-wrap {
+    position: relative; /* Container que ancora o badge absoluto */
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  .comp-plan-col {
-    min-width: 120px;
+  /* DESTAQUE DO PLANO SCALE - APENAS NAS LINHAS DE FEATURES (MANTÉM BADGE NO HEADER) */
+  .comp-table tbody tr td.feat-cell-featured + td {
+    border-left: none !important;
+  }
+  .badge-popular {
+    position: absolute;
+    top: -40px; /* Ajuste compensando os 30px de top padding + 10px metade do badge */
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--turquesa);
+    color: #fff;
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 4px 10px;
+    border-radius: 100px;
+    box-shadow: 0 2px 6px rgba(0, 197, 180, 0.3);
+    white-space: nowrap;
+    z-index: 20;
   }
 
-  .comp-plan-featured {
-    color: var(--turquesa) !important;
+  .plan-col-head {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
   }
-
-  .comp-cat-row td {
-    padding: 14px 20px;
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
+  .plan-col-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--turquesa);
+    box-shadow: 0 0 0 4px rgba(0,197,180,0.18);
+  }
+  .plan-col-name {
+    font-family: var(--font-display);
+    font-size: 16px; /* Fonte reduzida para diminuir altura do cabeçalho */
     font-weight: 600;
+    letter-spacing: -0.01em;
+    color: #ffffff;
+    line-height: 1;
+  }
+
+  /* LINHAS DE GRUPO (CATEGORIAS) */
+  .comp-table tbody tr.group-row td {
+    padding: 16px 18px 12px; /* Altura um pouco menor também */
+    font-family: var(--font-display);
+    background: #fafafa; /* Levemente cinza pra destacar a quebra */
+    border-top: 1px solid rgba(0,0,0,0.03);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .group-row-label {
+    display: inline-flex; align-items: center;
+    font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--ardosia);
+  }
+  .group-row-label::before {
+    content: ''; display: inline-block;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--turquesa);
+    margin-right: 10px;
+  }
+
+  /* LINHAS DE FEATURES */
+  .comp-table tbody tr.feat-row td {
+    padding: 12px 18px; /* Menor respiro para deixar tabela mais compacta */
+    border-bottom: 1px solid rgba(0,0,0,0.04); /* Borda bem suave */
+    background: #ffffff;
+    transition: background 0.2s ease;
+  }
+  .comp-table tbody tr.feat-row:last-child td {
+    border-bottom: none;
+  }
+  .comp-table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .comp-table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  
+  /* EFEITO DE HOVER REFINADO */
+  .comp-table tbody tr.feat-row:hover td { 
+    background: #f4f8f7 !important; /* Força o hover por cima do branco */
+  }
+  .comp-table tbody tr.feat-row td.feat-cell-featured {
+    background: #F4FBFA;
+    border-left: 1px solid rgba(0, 197, 180, 0.15);
+    border-right: 1px solid rgba(0, 197, 180, 0.15);
+  }
+  .comp-table tbody tr.feat-row:hover td.feat-cell-featured {
+    background: #E8F5F4 !important;
+  }
+
+  .comp-table tbody tr.feat-row td:first-child {
+    color: var(--charcoal); font-size: 13px; font-weight: 500;
+  }
+  .comp-table tbody tr.feat-row td:not(:first-child) {
+    text-align: center;
+    border-left: 1px solid var(--border-light);
+  }
+
+  /* BADGE "EM BREVE" */
+  .comp-table tbody tr.feat-row td.feat-name :global(.soon) {
+    display: inline-block;
+    font-size: 9px; font-weight: 700;
+    color: var(--terracotta);
+    background: rgba(224, 66, 42, 0.08);
+    border: 1px solid rgba(224, 66, 42, 0.15);
+    border-radius: 100px;
+    padding: 2px 8px;
+    margin-left: 8px;
+    vertical-align: text-top;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ICONS E VALORES */
+  .ic-yes {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--turquesa) 0%, #00a89a 100%);
+    color: #fff;
+    font-size: 0;
+    box-shadow: 0 2px 4px rgba(0,197,180,0.2);
+  }
+  .ic-yes::before {
+    content: ''; display: block;
+    width: 9px; height: 9px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' fill='none'><path d='M1.5 5L3.8 7.5L8.5 2' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat; background-position: center;
+  }
+  .ic-no  {
+    display: inline-block;
+    width: 14px; height: 2px;
+    background: #cbd5e1; border-radius: 2px;
+    font-size: 0; vertical-align: middle;
+  }
+  .ic-val {
+    font-family: var(--font-display); font-weight: 600;
+    font-size: 14px; color: var(--ardosia); letter-spacing: -0.01em;
+  }
+  .ic-unlimited {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(0,197,180,0.1);
+    color: var(--turquesa);
+    font-weight: 700; font-size: 10px;
+    border-radius: 100px;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--turquesa);
-    background: #fafbf8;
-    border-top: 1px solid var(--glass-border);
-    border-bottom: 1px solid var(--glass-border);
   }
 
-  .comp-table tbody tr:not(.comp-cat-row) {
-    border-bottom: 1px solid rgba(0,0,0,0.04);
+  @media (max-width: 768px) {
+    .comp-table thead tr th.th-featured { border-left-width: 0; border-right-width: 0; }
+    .comp-table tbody tr.feat-row td.feat-cell-featured { border-left: 1px solid var(--border-light); border-right-width: 0; }
   }
 
-  .comp-table tbody tr:not(.comp-cat-row):hover {
-    background: rgba(0,197,180,0.03);
-  }
-
-  .comp-feature {
-    padding: 12px 20px;
-    color: var(--carvao);
-    line-height: 1.4;
-  }
-
-  .comp-cell {
-    padding: 12px 20px;
-    text-align: center;
-    vertical-align: middle;
-  }
-
-  .comp-check svg {
-    display: inline-block;
-  }
-
-  .comp-dash-icon {
-    color: var(--text-muted);
-    font-size: 1rem;
-  }
-
-  .comp-value {
-    font-family: var(--font-mono);
-    font-size: 0.718rem;
-    color: var(--ardosia);
-    font-weight: 500;
-  }
-
-  .comp-featured-col {
-    background: rgba(0,197,180,0.03);
+  @media (max-width: 560px) {
+    .sec-comparativo { padding: 48px 0 0; }
+    .comp-card { border-radius: var(--radius-md); }
+    .comp-table { min-width: 680px; }
+    .comp-table thead tr th { padding: 12px 8px; }
+    .comp-table thead tr th:first-child { width: 32%; }
+    .comp-table thead tr th:not(:first-child) { width: 17%; }
+    .plan-col-name { font-size: 13px; }
+    .plan-col-dot { width: 4px; height: 4px; box-shadow: 0 0 0 3px rgba(0,197,180,0.18); }
+    .badge-popular { font-size: 8px; padding: 2px 6px; top: -18px; }
+    .comp-table tbody tr.feat-row td { padding: 10px 10px; font-size: 12px; }
+    .comp-table tbody tr.feat-row td:first-child { font-size: 12px; }
+    .comp-table tbody tr.group-row td { padding: 12px 10px 10px; }
+    .group-row-label { font-size: 10px; }
+    .ic-yes { width: 18px; height: 18px; }
+    .ic-val { font-size: 12px; }
+    .comp-table-wrap {
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+    .comp-table-wrap::after {
+      content: '← deslize para ver todos os planos →';
+      display: block; text-align: center;
+      font-size: 11px; color: var(--txt-muted);
+      padding: 12px 0 6px; letter-spacing: 0.02em;
+    }
   }
 </style>

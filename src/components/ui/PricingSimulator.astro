@@ -93,20 +93,33 @@
     function update() {
       if (usersEl) usersEl.textContent = String(users);
 
+      let addonsTotal = 0;
+      document.querySelectorAll('.sim-addon-check:checked').forEach(cb => {
+        const key = cb.dataset.addon;
+        const data = ADDONS[key];
+        if (data) {
+          addonsTotal += data.perUser ? data[cycle] * users : data[cycle];
+        }
+      });
+
       Object.entries(PRICES).forEach(([plan, data]) => {
         const p = data[cycle];
-        const total = p.base + users * p.user;
+        const baseTotal = p.base + users * p.user;
+        const finalTotal = baseTotal + addonsTotal;
         const card = grid.querySelector(`[data-plan="${plan}"]`);
         if (!card) return;
         const valEl = card.querySelector('[data-sim-total]');
         const detEl = card.querySelector('[data-sim-detail]');
-        if (valEl) valEl.textContent = fmt(total);
+        if (valEl) valEl.textContent = fmt(finalTotal);
         if (detEl) {
-          if (p.base > 0) {
-            detEl.textContent = `${users} × R$ ${fmt(p.user)} + R$ ${fmt(p.base)} base`;
-          } else {
-            detEl.textContent = `${users} usuários × R$ ${fmt(p.user)}`;
+          let detText = p.base > 0 
+            ? `${users} × R$ ${fmt(p.user)} + R$ ${fmt(p.base)} base` 
+            : `${users} usuários × R$ ${fmt(p.user)}`;
+          
+          if (addonsTotal > 0) {
+            detText += ` + R$ ${fmt(addonsTotal)} (Add-ons)`;
           }
+          detEl.textContent = detText;
         }
       });
 
@@ -133,6 +146,11 @@
         if (btn.dataset.simAction === 'minus' && users > MIN) users--;
         update();
       });
+    });
+
+    // Addons
+    document.querySelectorAll('.sim-addon-check').forEach(cb => {
+      cb.addEventListener('change', update);
     });
 
     update();
@@ -342,9 +360,9 @@
   }
 
   .sim-addon-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
   }
 
   .sim-addon-item {
@@ -395,7 +413,7 @@
   }
 
   @media (max-width: 768px) {
-    .sim-grid {
+    .sim-grid, .sim-addon-grid {
       grid-template-columns: 1fr;
     }
   }
