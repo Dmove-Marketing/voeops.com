@@ -25,18 +25,18 @@
       <div class="sim-card" data-plan="starter">
         <div class="sim-plan-name">Starter</div>
         <div class="sim-price"><span class="sim-cur">R$</span> <span class="sim-val" data-sim-total>387</span><span class="sim-period"> /mês</span></div>
-        <div class="sim-detail" data-sim-detail>3 usuários × R$ 129</div>
+        <div class="sim-detail" data-sim-detail>- 3 usuários inclusos</div>
       </div>
       <div class="sim-card" data-plan="growth">
         <div class="sim-plan-name">Growth</div>
         <div class="sim-price"><span class="sim-cur">R$</span> <span class="sim-val" data-sim-total>687</span><span class="sim-period"> /mês</span></div>
-        <div class="sim-detail" data-sim-detail>3 usuários × R$ 229</div>
+        <div class="sim-detail" data-sim-detail>- 3 usuários inclusos</div>
       </div>
       <div class="sim-card sim-card--featured" data-plan="scale">
         <span class="sim-best">Mais escolhido</span>
         <div class="sim-plan-name">Scale</div>
         <div class="sim-price"><span class="sim-cur">R$</span> <span class="sim-val" data-sim-total>1.686</span><span class="sim-period"> /mês</span></div>
-        <div class="sim-detail" data-sim-detail>3 × R$ 329 + R$ 699 base</div>
+        <div class="sim-detail" data-sim-detail>- 3 usuários inclusos</div>
       </div>
     </div>
 
@@ -112,14 +112,12 @@
         const detEl = card.querySelector('[data-sim-detail]');
         if (valEl) valEl.textContent = fmt(finalTotal);
         if (detEl) {
-          let detText = p.base > 0 
-            ? `${users} × R$ ${fmt(p.user)} + R$ ${fmt(p.base)} base` 
-            : `${users} usuários × R$ ${fmt(p.user)}`;
+          let detHTML = `- ${users} usuários inclusos`;
           
           if (addonsTotal > 0) {
-            detText += ` + R$ ${fmt(addonsTotal)} (Add-ons)`;
+            detHTML += `<br>- Adicionais (R$ ${fmt(addonsTotal)})`;
           }
-          detEl.textContent = detText;
+          detEl.innerHTML = detHTML;
         }
       });
 
