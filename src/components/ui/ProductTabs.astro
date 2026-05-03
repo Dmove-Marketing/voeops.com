@@ -103,6 +103,9 @@
         tab.classList.add("active");
 
         if (subtitle) subtitle.textContent = data.lead;
+
+        // Ensure the clicked tab smoothly scrolls into the center of the viewport
+        tab.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
       });
     });
 
