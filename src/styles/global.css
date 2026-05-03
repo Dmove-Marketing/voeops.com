@@ -69,6 +69,7 @@ html {
   text-rendering: optimizeLegibility;
   scroll-behavior: smooth;
   scroll-padding-top: 80px;
+  background-color: var(--ardosia-dark);
 }
 
 body {
