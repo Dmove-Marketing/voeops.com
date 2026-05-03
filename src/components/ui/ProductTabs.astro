@@ -17,16 +17,18 @@
       </div>
     </div>
     
-    <div class="tabs-bar" id="tabsBar">
-      <button class="tab-btn active" data-tab="conversas">Conversas</button>
-      <button class="tab-btn" data-tab="negociacoes">Negociações</button>
-      <button class="tab-btn" data-tab="oportunidade">Oportunidade</button>
-      <button class="tab-btn" data-tab="atividades">Atividades</button>
-      <button class="tab-btn" data-tab="whatsapp">WhatsApp agendado</button>
-      <button class="tab-btn" data-tab="agenda">Agenda</button>
-      <button class="tab-btn" data-tab="audiencias">Audiências</button>
-      <button class="tab-btn" data-tab="campanhas">Campanhas</button>
-      <button class="tab-btn" data-tab="automacoes">Automações</button>
+    <div class="tabs-wrapper">
+      <div class="tabs-bar" id="tabsBar">
+        <button class="tab-btn active" data-tab="conversas">Conversas</button>
+        <button class="tab-btn" data-tab="negociacoes">Negociações</button>
+        <button class="tab-btn" data-tab="oportunidade">Oportunidade</button>
+        <button class="tab-btn" data-tab="atividades">Atividades</button>
+        <button class="tab-btn" data-tab="whatsapp">WhatsApp agendado</button>
+        <button class="tab-btn" data-tab="agenda">Agenda</button>
+        <button class="tab-btn" data-tab="audiencias">Audiências</button>
+        <button class="tab-btn" data-tab="campanhas">Campanhas</button>
+        <button class="tab-btn" data-tab="automacoes">Automações</button>
+      </div>
     </div>
     
     <div class="tabs-body">
@@ -221,6 +223,11 @@
     margin-bottom: 50px; 
   }
 
+  .tabs-wrapper {
+    position: relative;
+    margin-bottom: 32px;
+  }
+
   .tabs-bar { 
     display: flex; 
     flex-wrap: wrap; 
@@ -229,7 +236,6 @@
     background: white; 
     border: 1px solid var(--line); 
     border-radius: 10px; 
-    margin-bottom: 32px; 
   }
   
   .tabs-bar .tab-btn { 
@@ -325,12 +331,31 @@
     .tabs-section {
       padding: 60px 0;
     }
+    .tabs-wrapper::after {
+      content: '';
+      position: absolute;
+      top: 1px;
+      right: 1px;
+      bottom: 1px;
+      width: 60px;
+      background: linear-gradient(to right, rgba(255,255,255,0), #ffffff 90%);
+      pointer-events: none;
+      border-radius: 0 9px 9px 0;
+      z-index: 2;
+    }
+    
     .tabs-bar {
       flex-wrap: nowrap;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
       justify-content: flex-start;
-      border-radius: 8px;
+      border-radius: 10px;
+      padding-right: 40px; /* Extra padding so last item clears the gradient */
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE/Edge */
+    }
+    .tabs-bar::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera */
     }
     .tabs-bar .tab-btn {
       flex: 0 0 auto;

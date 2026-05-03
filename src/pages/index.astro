@@ -695,8 +695,27 @@ const testimonials = [
     }
 
     .stack-arrow-wrap {
-      transform: rotate(90deg);
+      transform: none;
+      height: auto;
+      flex-direction: row;
+      justify-content: center;
+      padding: 16px 0;
+      gap: 16px;
+    }
+    .stack-arrow {
+      width: 4px;
       height: 60px;
+    }
+    .stack-arrow::after {
+      top: auto;
+      bottom: -6px;
+      left: 50%;
+      right: auto;
+      transform: translateX(-50%);
+      border-left: 12px solid transparent;
+      border-right: 12px solid transparent;
+      border-top: 16px solid var(--turquesa);
+      border-bottom: none;
     }
 
     .impl-grid {
