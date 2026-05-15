@@ -37,7 +37,7 @@
     <div class="tabs-body">
       <div class="tab-screenshot">
         <div id="tabScreen" class="mock-host">
-          <span class="mock-placeholder">Screenshot em breve</span>
+          <img id="tabImg" src="/images/tabs/tab-conversas.jpeg" alt="Conversas" class="tab-img" />
         </div>
       </div>
     </div>
@@ -50,38 +50,47 @@
       conversas: {
         title: "Conversas",
         lead: "Inbox unificado de WhatsApp e Instagram Direct.",
+        img: "/images/tabs/tab-conversas.jpeg",
       },
       negociacoes: {
         title: "Negociações",
         lead: "Funil visual em Kanban ou lista, múltiplos funis simultâneos.",
+        img: "/images/tabs/tab-negociacoes.png",
       },
       oportunidade: {
         title: "Oportunidade",
         lead: "Tudo que o vendedor precisa, sem sair da tela.",
+        img: "/images/tabs/tab-oportunidade.png",
       },
       atividades: {
         title: "Atividades",
         lead: "Lista centralizada de todas as atividades do time.",
+        img: "/images/tabs/tab-atividades.png",
       },
       whatsapp: {
         title: "WhatsApp agendado",
         lead: "Agende envio de mensagem para data e hora definidos.",
+        img: "/images/tabs/tab-whatsapp.jpeg",
       },
       agenda: {
         title: "Agenda",
         lead: "Calendario visual sincronizado com o CRM.",
+        img: "/images/tabs/tab-agenda.png",
       },
       audiencias: {
         title: "Audiências",
         lead: "Segmentação avancada de contatos e negociações.",
+        img: "/images/tabs/tab-audiencias.png",
       },
       campanhas: {
         title: "Campanhas",
         lead: "Disparo em massa de WhatsApp e e-mail.",
+        img: "/images/tabs/tab-campanhas.png",
       },
       automacoes: {
         title: "Automações",
         lead: "Fluxos disparados por gatilhos do sistema.",
+        img: "/images/tabs/tab-automacoes.png",
       },
     };
 
@@ -90,6 +99,7 @@
 
     const tabs = section.querySelectorAll(".tab-btn");
     const subtitle = document.getElementById("tabSub");
+    const tabImg = document.getElementById("tabImg") as HTMLImageElement;
 
     tabs.forEach(function (tab) {
       tab.addEventListener("click", function () {
@@ -103,6 +113,10 @@
         tab.classList.add("active");
 
         if (subtitle) subtitle.textContent = data.lead;
+        if (tabImg) {
+          tabImg.src = data.img;
+          tabImg.alt = data.title;
+        }
 
         // Ensure the clicked tab smoothly scrolls into the center of the viewport
         tab.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
@@ -286,40 +300,35 @@
   .tab-btn.active { background: var(--ardosia); color: white; }
   
   .tabs-body {
-    background: #fff; 
+    background: #fff;
     border: 1px solid rgba(0,197,180,0.18);
-    border-radius: 12px; 
-    height: clamp(560px, 70vh, 760px);
-    display: flex; 
+    border-radius: 12px;
+    display: flex;
     flex-direction: column;
-    padding: 24px;
+    padding: 16px;
     box-shadow: 0 4px 24px rgba(48,69,91,0.06), 0 1px 4px rgba(48,69,91,0.04);
   }
-  
+
   .tab-screenshot {
-    flex: 1; 
-    min-height: 0; 
-    background: #fff; 
-    border-radius: 8px; 
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    background: #f5f6f8;
+    border-radius: 8px;
     border: 1px solid var(--line);
     overflow: hidden;
   }
 
-  .mock-host { 
-    width: 100%; 
-    height: 100%; 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .mock-host {
+    width: 100%;
+    height: 100%;
   }
 
-  .mock-placeholder {
-    font-family: var(--font-mono);
-    font-size: 0.8125rem;
-    color: var(--text-muted);
-    opacity: 0.6;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+  .tab-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    display: block;
   }
 
 
