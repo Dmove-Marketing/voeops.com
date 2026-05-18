@@ -74,5 +74,54 @@ const defaultJsonLd = {
     <slot />
 
     <slot name="scripts" />
+
+    <!-- Voe widget -->
+    <script src="https://widget.voeops.com/w.js" data-voe="2e36936a3863509a24940c09cf14f760" async></script>
+
+    <script>
+      (function () {
+        var launcher = null;
+
+        // Observa o DOM até o botão do widget aparecer
+        function findLauncher() {
+          return (
+            document.querySelector('button[id*="voe"]') ||
+            document.querySelector('button[class*="voe"]') ||
+            document.querySelector('[data-voe-launcher]') ||
+            document.querySelector('iframe[src*="widget.voeops"]')
+          );
+        }
+
+        var mo = new MutationObserver(function () {
+          var el = findLauncher();
+          if (el) { launcher = el; mo.disconnect(); }
+        });
+
+        function startObserver() {
+          mo.observe(document.body, { childList: true, subtree: true });
+        }
+
+        if (document.body) {
+          startObserver();
+        } else {
+          document.addEventListener('DOMContentLoaded', startObserver);
+        }
+
+        function openWidget() {
+          if (!launcher) launcher = findLauncher();
+          if (launcher) { launcher.click(); return; }
+          // fallback se o widget ainda não carregou
+          window.open('https://wa.me/5511999803580', '_blank', 'noopener,noreferrer');
+        }
+
+        // Captura cliques em todos os links wa.me (CTAs, float, footer)
+        document.addEventListener('click', function (e) {
+          var el = e.target.closest('a[href*="wa.me"]');
+          if (!el) return;
+          e.preventDefault();
+          openWidget();
+        }, true);
+      })();
+    </script>
   </body>
 </html>
