@@ -1,38 +1,106 @@
-name: Deploy to VPS
+name: Deploy — voeops.com
 
+# Dispara somente em push na main (não em PRs, não em outras branches)
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch: # Allow manual trigger
+    branches: [main]
+  workflow_dispatch: # Permite disparo manual pelo painel do GitHub
+
+# Impede dois deploys simultâneos.
+# cancel-in-progress: false garante que um deploy em andamento termina antes.
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
+  deploy:
+    name: Build & Deploy
     runs-on: ubuntu-latest
-    name: Build Astro & Deploy to VPS
 
     steps:
-      - name: Checkout repository
+      # ── 1. Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout repositório
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      # ── 2. Node.js com cache de dependências ─────────────────────────────────
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
+          cache: 'npm'                # usa package-lock.json como chave de cache
 
-      - name: Install dependencies
-        run: npm ci
+      # ── 3. Instalar dependências ──────────────────────────────────────────────
+      - name: Instalar dependências
+        run: npm ci                   # instalação limpa e determinística
 
-      - name: Build Astro site
+      # ── 4. Build do Astro ─────────────────────────────────────────────────────
+      # Se o build falhar aqui, os passos seguintes não rodam e o site atual fica no ar.
+      - name: Build Astro
         run: npm run build
 
-      - name: Deploy to VPS via rsync
+      # ── 5. Gerar ID de release ────────────────────────────────────────────────
+      # Combina timestamp + SHA do commit para rastreabilidade e rollback manual.
+      - name: Gerar ID do release
+        id: release
+        run: |
+          TIMESTAMP=$(date -u +%Y%m%d_%H%M%S)
+          RELEASE_ID="${TIMESTAMP}_${GITHUB_SHA::7}"
+          echo "id=${RELEASE_ID}" >> "$GITHUB_OUTPUT"
+          echo "Release ID: ${RELEASE_ID}"
+
+      # ── 6. Criar diretório de release na VPS ─────────────────────────────────
+      # Cria a estrutura antes de começar o rsync.
+      - name: Criar diretório de release na VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            mkdir -p "${{ secrets.VPS_PATH }}/releases/${{ steps.release.outputs.id }}"
+
+      # ── 7. Enviar arquivos buildados ──────────────────────────────────────────
+      # rsync vai para o diretório do novo release, NÃO para o diretório ativo (current).
+      # Isso garante que o site antigo continua servindo durante a transferência.
+      - name: Enviar dist/ para a VPS
         uses: burnett01/rsync-deployments@7.0.1
         with:
-          switches: -avz --delete --exclude='.DS_Store'
+          switches: -avz --checksum --exclude='.DS_Store' --exclude='*.map'
           path: dist/
-          remote_path: /var/www/voeops.com/
+          remote_path: ${{ secrets.VPS_PATH }}/releases/${{ steps.release.outputs.id }}/
           remote_host: ${{ secrets.VPS_HOST }}
           remote_user: ${{ secrets.VPS_USER }}
           remote_key: ${{ secrets.VPS_SSH_KEY }}
+          remote_port: ${{ secrets.VPS_PORT }}
+
+      # ── 8. Ativar release (troca atômica de symlink) ──────────────────────────
+      # ln -sfn é atômico no Linux: o Nginx nunca vê o diretório vazio.
+      # O site antigo fica no ar até o exato momento em que o novo é ativado.
+      - name: Ativar novo release
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            set -euo pipefail
+            BASE="${{ secrets.VPS_PATH }}"
+            RELEASE="$BASE/releases/${{ steps.release.outputs.id }}"
+
+            # Sanity check: garante que o index.html chegou antes de ativar
+            if [ ! -f "$RELEASE/index.html" ]; then
+              echo "ERRO: index.html não encontrado em $RELEASE. Deploy abortado."
+              exit 1
+            fi
+
+            # Troca atômica: aponta o symlink 'current' para o novo release
+            ln -sfn "$RELEASE" "$BASE/current"
+
+            # Mantém os 5 releases mais recentes para rollback manual
+            # (tudo além do 5º mais novo é removido)
+            ls -1dt "$BASE/releases"/*/ 2>/dev/null | tail -n +6 | xargs -r rm -rf
+
+            echo "Deploy ativado com sucesso: $RELEASE"
+            echo "Link atual: $(readlink -f $BASE/current)"

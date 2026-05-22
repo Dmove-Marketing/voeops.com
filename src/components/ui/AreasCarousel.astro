@@ -310,11 +310,15 @@ const AREAS = [
   .area-dots { display: flex; align-items: center; gap: 10px; }
   .area-dot {
     width: 8px; height: 8px; border-radius: 50%;
-    background: rgba(255,255,255,0.2); padding: 0; margin: 0; border: 0;
+    background: rgba(255,255,255,0.2); border: 0;
     cursor: pointer; transition: all 0.2s;
+    /* Touch target mínimo 44×44px (WCAG 2.5.5) */
+    padding: 18px;
+    margin: -18px;
+    background-clip: content-box;
   }
-  .area-dot:hover { background: rgba(255,255,255,0.4); }
-  .area-dot.is-active { background: var(--turquesa, #00C5B4); transform: scale(1.3); }
+  .area-dot:hover { background: rgba(255,255,255,0.4); background-clip: content-box; }
+  .area-dot.is-active { background: var(--turquesa, #00C5B4); background-clip: content-box; transform: scale(1.3); }
 
   .area-arrows { display: flex; align-items: center; gap: 8px; }
   .area-arrow {

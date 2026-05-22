@@ -1,7 +1,7 @@
 ---
 ---
 
-<div class="dot-grid-container" style="position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden;">
+<div class="dot-grid-container" data-dotgrid-interactive style="position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden;">
   <canvas class="dot-grid-canvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
   <div class="dot-grid-glow" style="
     position:absolute;
@@ -18,7 +18,7 @@
 
 <script>
   function initDotGrids() {
-    const containers = document.querySelectorAll('.dot-grid-container');
+    const containers = document.querySelectorAll('[data-dotgrid-interactive]');
     containers.forEach((container) => {
       const canvas = container.querySelector('.dot-grid-canvas') as HTMLCanvasElement;
       if (!canvas) return;
@@ -157,9 +157,12 @@
         });
       }
 
-      window.addEventListener('resize', () => {
-        buildDots();
+      // ResizeObserver evita reflow forçado: o callback dispara após layout concluído,
+      // eliminando a sequência write→read síncrona que causava 83ms de bloqueio.
+      const resizeObserver = new ResizeObserver(() => {
+        requestAnimationFrame(buildDots);
       });
+      resizeObserver.observe(container);
 
       buildDots();
 

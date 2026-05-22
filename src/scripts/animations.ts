@@ -115,35 +115,4 @@ export function initCTATracking() {
   });
 }
 
-/**
- * Efeito parallax em elementos com [data-parallax]
- * Uso: data-parallax="slow" | "medium" | "fast"
- * O elemento se move em velocidade diferente do scroll
- */
-export function initParallax() {
-  const elements = document.querySelectorAll('[data-parallax]');
-
-  elements.forEach((el) => {
-    const speed = el.getAttribute('data-parallax') || 'medium';
-
-    const speedMap: Record<string, number> = {
-      slow: 30,
-      medium: 60,
-      fast: 100,
-    };
-
-    const yAmount = speedMap[speed] || 60;
-
-    gsap.to(el, {
-      y: yAmount,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: el,
-        start: 'top bottom',
-        end: 'bottom top',
-        scrub: true,
-      },
-    });
-  });
-}
 

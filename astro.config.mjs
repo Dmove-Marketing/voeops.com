@@ -9,7 +9,7 @@ export default defineConfig({
 
   // Build otimizado
   build: {
-    inlineStylesheets: 'auto',
+    inlineStylesheets: 'always',
   },
 
   // Dev server

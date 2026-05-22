@@ -37,7 +37,18 @@
     <div class="tabs-body">
       <div class="tab-screenshot">
         <div id="tabScreen" class="mock-host">
-          <img id="tabImg" src="/images/tabs/tab-conversas.webp" alt="Conversas" class="tab-img" width="1280" height="720" />
+          <img
+            id="tabImg"
+            src="/images/tabs/tab-conversas.webp"
+            srcset="/images/tabs/tab-conversas-480w.webp 480w, /images/tabs/tab-conversas-900w.webp 900w, /images/tabs/tab-conversas.webp 1500w"
+            sizes="(max-width: 600px) calc(100vw - 48px), (max-width: 1024px) calc(90vw - 48px), 1200px"
+            alt="Conversas"
+            class="tab-img"
+            width="1500"
+            height="700"
+            loading="eager"
+            fetchpriority="high"
+          />
         </div>
       </div>
     </div>
@@ -205,7 +216,10 @@
         animFrameId = requestAnimationFrame(draw);
       }
 
-      window.addEventListener('resize', resize);
+      const resizeObserver = new ResizeObserver(() => {
+        requestAnimationFrame(resize);
+      });
+      resizeObserver.observe(container);
       section.addEventListener('mousemove', (e) => {
         const rect = container.getBoundingClientRect();
         mouse.x = (e as MouseEvent).clientX - rect.left;
@@ -231,7 +245,12 @@
       if (section) tabsVisibilityObserver.observe(section);
     }
 
-    document.querySelectorAll('.dot-grid-container').forEach(attach);
+    // Escopo restrito à seção de tabs — evita conflito com DotGrid.astro
+    const tabsSection = document.querySelector('.tabs-section');
+    if (tabsSection) {
+      const container = tabsSection.querySelector('.dot-grid-container');
+      if (container) attach(container);
+    }
   })();
 </script>
 

@@ -33,6 +33,7 @@ const testimonials = [
 >
   <Header />
 
+  <main>
   <!-- HERO -->
   <section class="hero">
     <div class="container">
@@ -46,7 +47,7 @@ const testimonials = [
         CRM, inbox de WhatsApp, campanhas e automações em um único sistema. Para PME brasileiro que vende pelo WhatsApp.
       </p>
       <div class="hero-cta-row" data-animate="fade-up" data-delay="0.3">
-        <a href="https://wa.me/5511999803580" target="_blank" rel="noopener" class="btn btn-primary btn-lg" data-cta="hero-demo" data-chat-intent="demo">
+        <a href="https://wa.me/5511999803580" target="_blank" rel="noopener" class="btn btn-primary btn-lg" data-cta="hero-demo" data-chat-intent="demo" aria-label="Agendar demonstração — seção hero">
           Agendar demonstração <span class="btn-arrow">→</span>
         </a>
         <a href="#produto" class="btn btn-ghost-light btn-lg">Explorar recursos</a>
@@ -180,7 +181,7 @@ const testimonials = [
       <h2 data-animate="fade-up">Pronto para ver<br/><em>na prática</em>?</h2>
       <p data-animate="fade-up" data-delay="0.1">Agende uma demonstração com o time da Voe. Mostramos o sistema funcionando, tiramos dúvidas na hora e você decide com calma.</p>
       <div class="cta-row" data-animate="fade-up" data-delay="0.2">
-        <a href="https://wa.me/5511999803580" target="_blank" rel="noopener" class="btn btn-primary btn-lg" data-cta="cta-final-demo">
+        <a href="https://wa.me/5511999803580" target="_blank" rel="noopener" class="btn btn-primary btn-lg" data-cta="cta-final-demo" aria-label="Agendar demonstração — seção final">
           Agendar demonstração <span class="btn-arrow">→</span>
         </a>
         <a href="https://wa.me/5511999803580" target="_blank" rel="noopener" class="btn btn-ghost btn-lg" data-cta="cta-final-whatsapp">
@@ -190,16 +191,21 @@ const testimonials = [
     </div>
   </section>
 
+  </main>
+
   <Footer />
 
   <div class="scroll-progress" id="scrollProgress"></div>
 
   <script>
     import { initSmoothScroll } from '../scripts/smooth-scroll';
-    import { initScrollAnimations, initScrollDepthTracking, initCTATracking } from '../scripts/animations';
 
-    function init() {
+    async function init() {
       initSmoothScroll();
+
+      // Lazy-load GSAP para não bloquear a cadeia crítica de rede (56 KB)
+      const { initScrollAnimations, initScrollDepthTracking, initCTATracking } =
+        await import('../scripts/animations');
       initScrollAnimations();
       initScrollDepthTracking();
       initCTATracking();

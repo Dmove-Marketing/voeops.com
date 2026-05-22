@@ -214,27 +214,11 @@ button {
   padding: var(--space-4xl) 0;
 }
 
-.section-dark {
-  background-color: var(--bg-dark);
-  color: var(--text-on-dark);
-}
-
-.section-dark p {
-  color: var(--text-on-dark-secondary);
-}
-
 .glass {
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
-}
-
-.glass-dark {
-  background: var(--glass-dark-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-dark-border);
 }
 
 .gradient-text {
@@ -261,13 +245,6 @@ h4 { font-size: clamp(1.25rem, 2vw, 1.5rem); }
 p {
   color: var(--text-secondary);
   line-height: 1.7;
-}
-
-.section-dark h1,
-.section-dark h2,
-.section-dark h3,
-.section-dark h4 {
-  color: var(--text-on-dark);
 }
 
 .font-serif {
@@ -379,16 +356,6 @@ p {
   transform: translateY(0);
 }
 
-.btn-secondary {
-  background: var(--terracotta);
-  color: white;
-}
-
-.btn-secondary:hover {
-  background: var(--terracotta-hover);
-  transform: translateY(-2px);
-}
-
 .btn-ghost {
   background: transparent;
   color: var(--text-primary);
@@ -400,24 +367,9 @@ p {
   border-color: rgba(0, 0, 0, 0.12);
 }
 
-.section-dark .btn-ghost {
-  color: var(--text-on-dark);
-  border-color: var(--glass-dark-border);
-}
-
-.section-dark .btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
 .btn-lg {
   padding: 18px 36px;
   font-size: 1.05rem;
-}
-
-.btn-sm {
-  padding: 8px 18px;
-  font-size: 0.85rem;
 }
 
 /* === Forms === */
@@ -585,11 +537,6 @@ html.lenis body {
 .relative { position: relative; }
 .absolute { position: absolute; }
 
-/* === Parallax === */
-[data-parallax] {
-  will-change: transform;
-}
-
 /* === Badge / Tag === */
 .badge {
   display: inline-flex;
@@ -604,12 +551,6 @@ html.lenis body {
   color: var(--turquesa-dark);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-}
-
-.section-dark .badge {
-  background: var(--glass-dark-bg);
-  border-color: var(--glass-dark-border);
-  color: var(--turquesa);
 }
 
 /* === Divider === */
@@ -670,7 +611,3 @@ html.lenis body {
   min-height: 300px;
 }
 
-.section-dark .mock-placeholder {
-  background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.1));
-  color: var(--text-on-dark-muted);
-}
