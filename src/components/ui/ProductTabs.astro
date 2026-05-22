@@ -125,6 +125,7 @@
 
         if (subtitle) subtitle.textContent = data.lead;
         if (tabImg) {
+          tabImg.srcset = "";
           tabImg.src = data.img;
           tabImg.alt = data.title;
         }
@@ -342,7 +343,7 @@
   }
 
   .tab-screenshot {
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 1500 / 700;
     width: 100%;
     background: #f5f6f8;
     border-radius: 8px;
@@ -358,8 +359,7 @@
   .tab-img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    object-position: top center;
+    object-fit: contain;
     display: block;
   }
 

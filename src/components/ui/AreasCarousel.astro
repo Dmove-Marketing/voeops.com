@@ -68,7 +68,7 @@ const AREAS = [
               <div class="area-slide-right">
                 <div class="area-screenshot" data-role="mock">
                   {area.slides[0].img
-                    ? <img src={area.slides[0].img} alt={area.slides[0].titleHtml.replace(/<[^>]*>/g, '')} class="area-img" loading="lazy" width="1200" height="750" />
+                    ? <img src={area.slides[0].img} alt={area.slides[0].titleHtml.replace(/<[^>]*>/g, '')} class="area-img" width="1200" height="750" />
                     : <span class="area-placeholder">Screenshot em breve</span>
                   }
                 </div>
@@ -127,6 +127,7 @@ const AREAS = [
           if (!img) {
             img = document.createElement('img');
             img.className = 'area-img';
+            mockEl.innerHTML = '';
             mockEl.appendChild(img);
           }
           img.src = s.img;
@@ -156,7 +157,7 @@ const AREAS = [
           updateMock(s);
 
           slideEl.classList.remove('is-fading');
-          setTimeout(() => { busy = false; }, 200);
+          busy = false;
         }, 200);
       }
 
@@ -280,7 +281,7 @@ const AREAS = [
   .area-img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
     object-position: top center;
     display: block;
   }
@@ -310,15 +311,20 @@ const AREAS = [
   .area-dots { display: flex; align-items: center; gap: 10px; }
   .area-dot {
     width: 8px; height: 8px; border-radius: 50%;
-    background: rgba(255,255,255,0.2); border: 0;
+    background: rgba(255,255,255,0.2); padding: 0; margin: 0; border: 0;
     cursor: pointer; transition: all 0.2s;
-    /* Touch target mínimo 44×44px (WCAG 2.5.5) */
-    padding: 18px;
-    margin: -18px;
-    background-clip: content-box;
+    position: relative;
   }
-  .area-dot:hover { background: rgba(255,255,255,0.4); background-clip: content-box; }
-  .area-dot.is-active { background: var(--turquesa, #00C5B4); background-clip: content-box; transform: scale(1.3); }
+  /* Touch target 44×44px via ::before sem afetar layout ou overlap */
+  .area-dot::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 44px; height: 44px;
+  }
+  .area-dot:hover { background: rgba(255,255,255,0.4); }
+  .area-dot.is-active { background: var(--turquesa, #00C5B4); transform: scale(1.3); }
 
   .area-arrows { display: flex; align-items: center; gap: 8px; }
   .area-arrow {
