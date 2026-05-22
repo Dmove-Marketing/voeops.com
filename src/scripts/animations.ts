@@ -75,21 +75,26 @@ export function initScrollAnimations() {
 export function initScrollDepthTracking() {
   const thresholds = [25, 50, 75, 100];
   const triggered = new Set<number>();
+  let ticking = false;
 
   window.addEventListener('scroll', () => {
-    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-    if (scrollHeight <= 0) return;
-
-    const scrollPercent = Math.round((window.scrollY / scrollHeight) * 100);
-
-    thresholds.forEach(threshold => {
-      if (scrollPercent >= threshold && !triggered.has(threshold)) {
-        triggered.add(threshold);
-        (window as any).dataLayer?.push({
-          event: 'scroll_depth',
-          depth_percentage: threshold,
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (scrollHeight > 0) {
+        const scrollPercent = Math.round((window.scrollY / scrollHeight) * 100);
+        thresholds.forEach(threshold => {
+          if (scrollPercent >= threshold && !triggered.has(threshold)) {
+            triggered.add(threshold);
+            (window as any).dataLayer?.push({
+              event: 'scroll_depth',
+              depth_percentage: threshold,
+            });
+          }
         });
       }
+      ticking = false;
     });
   });
 }

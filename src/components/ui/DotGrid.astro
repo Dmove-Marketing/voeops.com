@@ -162,7 +162,20 @@
       });
 
       buildDots();
-      draw();
+
+      // Pausa o canvas quando a seção sai da tela, retoma quando volta
+      const sectionToObserve = container.parentElement || container;
+      const visibilityObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            if (!animId) draw();
+          } else {
+            cancelAnimationFrame(animId);
+            animId = 0;
+          }
+        });
+      }, { threshold: 0.01 });
+      visibilityObserver.observe(sectionToObserve);
     });
   }
 

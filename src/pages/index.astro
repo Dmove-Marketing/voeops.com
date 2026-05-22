@@ -207,9 +207,15 @@ const testimonials = [
       // Scroll progress bar
       const bar = document.getElementById('scrollProgress');
       if (bar) {
+        let progressTicking = false;
         window.addEventListener('scroll', () => {
-          const h = document.documentElement.scrollHeight - window.innerHeight;
-          if (h > 0) bar.style.width = (window.scrollY / h * 100) + '%';
+          if (progressTicking) return;
+          progressTicking = true;
+          requestAnimationFrame(() => {
+            const h = document.documentElement.scrollHeight - window.innerHeight;
+            if (h > 0) bar.style.width = (window.scrollY / h * 100) + '%';
+            progressTicking = false;
+          });
         });
       }
     }

@@ -37,7 +37,7 @@
     <div class="tabs-body">
       <div class="tab-screenshot">
         <div id="tabScreen" class="mock-host">
-          <img id="tabImg" src="/images/tabs/tab-conversas.jpeg" alt="Conversas" class="tab-img" />
+          <img id="tabImg" src="/images/tabs/tab-conversas.webp" alt="Conversas" class="tab-img" width="1280" height="720" />
         </div>
       </div>
     </div>
@@ -50,47 +50,47 @@
       conversas: {
         title: "Conversas",
         lead: "Inbox unificado de WhatsApp e Instagram Direct.",
-        img: "/images/tabs/tab-conversas.jpeg",
+        img: "/images/tabs/tab-conversas.webp",
       },
       negociacoes: {
         title: "Negociações",
         lead: "Funil visual em Kanban ou lista, múltiplos funis simultâneos.",
-        img: "/images/tabs/tab-negociacoes.png",
+        img: "/images/tabs/tab-negociacoes.webp",
       },
       oportunidade: {
         title: "Oportunidade",
         lead: "Tudo que o vendedor precisa, sem sair da tela.",
-        img: "/images/tabs/tab-oportunidade.png",
+        img: "/images/tabs/tab-oportunidade.webp",
       },
       atividades: {
         title: "Atividades",
         lead: "Lista centralizada de todas as atividades do time.",
-        img: "/images/tabs/tab-atividades.png",
+        img: "/images/tabs/tab-atividades.webp",
       },
       whatsapp: {
         title: "WhatsApp agendado",
         lead: "Agende envio de mensagem para data e hora definidos.",
-        img: "/images/tabs/tab-whatsapp.jpeg",
+        img: "/images/tabs/tab-whatsapp.webp",
       },
       agenda: {
         title: "Agenda",
         lead: "Calendario visual sincronizado com o CRM.",
-        img: "/images/tabs/tab-agenda.png",
+        img: "/images/tabs/tab-agenda.webp",
       },
       audiencias: {
         title: "Audiências",
         lead: "Segmentação avancada de contatos e negociações.",
-        img: "/images/tabs/tab-audiencias.png",
+        img: "/images/tabs/tab-audiencias.webp",
       },
       campanhas: {
         title: "Campanhas",
         lead: "Disparo em massa de WhatsApp e e-mail.",
-        img: "/images/tabs/tab-campanhas.png",
+        img: "/images/tabs/tab-campanhas.webp",
       },
       automacoes: {
         title: "Automações",
         lead: "Fluxos disparados por gatilhos do sistema.",
-        img: "/images/tabs/tab-automacoes.png",
+        img: "/images/tabs/tab-automacoes.webp",
       },
     };
 
@@ -156,6 +156,7 @@
       let mouse = { x: -9999, y: -9999 };
       let dots: Array<{x: number, y: number}> = [];
       let w = 0, h = 0;
+      let animFrameId = 0;
 
       function resize() {
         const rect = container.getBoundingClientRect();
@@ -201,7 +202,7 @@
             ctx!.fill();
           }
         }
-        requestAnimationFrame(draw);
+        animFrameId = requestAnimationFrame(draw);
       }
 
       window.addEventListener('resize', resize);
@@ -215,9 +216,21 @@
       });
 
       resize();
-      draw();
+
+      // Pausa o canvas quando a seção sai da tela, retoma quando volta
+      const tabsVisibilityObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            if (!animFrameId) draw();
+          } else {
+            cancelAnimationFrame(animFrameId);
+            animFrameId = 0;
+          }
+        });
+      }, { threshold: 0.01 });
+      if (section) tabsVisibilityObserver.observe(section);
     }
-    
+
     document.querySelectorAll('.dot-grid-container').forEach(attach);
   })();
 </script>

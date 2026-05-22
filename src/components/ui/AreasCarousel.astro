@@ -68,7 +68,7 @@ const AREAS = [
               <div class="area-slide-right">
                 <div class="area-screenshot" data-role="mock">
                   {area.slides[0].img
-                    ? <img src={area.slides[0].img} alt={area.slides[0].titleHtml.replace(/<[^>]*>/g, '')} class="area-img" />
+                    ? <img src={area.slides[0].img} alt={area.slides[0].titleHtml.replace(/<[^>]*>/g, '')} class="area-img" loading="lazy" width="1200" height="750" />
                     : <span class="area-placeholder">Screenshot em breve</span>
                   }
                 </div>
@@ -123,9 +123,16 @@ const AREAS = [
       function updateMock(s) {
         if (!mockEl) return;
         if (s.img) {
-          mockEl.innerHTML = `<img src="${s.img}" alt="" class="area-img" />`;
+          let img = mockEl.querySelector('img.area-img');
+          if (!img) {
+            img = document.createElement('img');
+            img.className = 'area-img';
+            mockEl.appendChild(img);
+          }
+          img.src = s.img;
+          img.alt = '';
         } else {
-          mockEl.innerHTML = `<span class="area-placeholder">Screenshot em breve</span>`;
+          mockEl.innerHTML = '<span class="area-placeholder">Screenshot em breve</span>';
         }
       }
 
@@ -214,12 +221,10 @@ const AREAS = [
   }
 
   .area-card {
-    background: rgba(255,255,255,0.03);
+    background: rgba(20,30,46,0.94);
     border: 1px solid rgba(255,255,255,0.10);
     border-radius: 14px;
     overflow: hidden;
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
     box-shadow: 0 1px 0 rgba(255,255,255,0.04), 0 24px 60px -20px rgba(0,0,0,0.45);
   }
   .area-slide {

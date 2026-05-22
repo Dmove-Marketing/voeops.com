@@ -5,7 +5,7 @@ export default defineConfig({
   output: 'static',
 
   // View Transitions habilitadas
-  prefetch: true,
+  prefetch: false,
 
   // Build otimizado
   build: {
