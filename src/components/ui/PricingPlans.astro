@@ -1,4 +1,6 @@
 ---
+import DotGrid from './DotGrid.astro';
+
 interface Props {
   showLink?: boolean;
 }
@@ -87,7 +89,7 @@ const plans = [
 ---
 
 <section id="planos" class="planos-section">
-  <div class="dot-grid-container"><div class="dot-grid-glow-static"></div><canvas class="dot-grid-canvas"></canvas></div>
+  <DotGrid />
   <div class="container">
     <div class="planos-head">
       <div>

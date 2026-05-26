@@ -1,13 +1,11 @@
 ---
 // src/components/ui/ProductTabs.astro
 // Tabbed product showcase with 9 feature tabs.
+import DotGrid from './DotGrid.astro';
 ---
 
 <section class="tabs-section" id="produto">
-  <div class="dot-grid-container">
-    <div class="dot-grid-glow-static"></div>
-    <canvas class="dot-grid-canvas"></canvas>
-  </div>
+  <DotGrid />
   <div class="container-wide">
     <div class="tabs-head">
       <div>
@@ -145,112 +143,6 @@
           (scrollHint as HTMLElement).style.opacity = "1";
         }
       });
-    }
-  })();
-
-  // Dot Grid Script
-  (function() {
-    const dpr = window.devicePixelRatio || 1;
-    const SPACING = 32;
-    const RADIUS = 1.2;
-    const DOT_COLOR = 'rgba(48, 69, 91, 0.12)';
-    const GLOW_COLOR = 'rgba(0, 197, 180, 0.15)'; // turquesa glow
-
-    function attach(container) {
-      const canvas = container.querySelector('.dot-grid-canvas') as HTMLCanvasElement;
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      
-      const section = container.parentElement;
-      if (!section) return;
-
-      let mouse = { x: -9999, y: -9999 };
-      let dots: Array<{x: number, y: number}> = [];
-      let w = 0, h = 0;
-      let animFrameId = 0;
-
-      function resize() {
-        const rect = container.getBoundingClientRect();
-        w = rect.width; h = rect.height;
-        canvas.width = w * dpr; canvas.height = h * dpr;
-        ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
-        buildDots();
-      }
-      function buildDots() {
-        dots = [];
-        const cols = Math.ceil(w / SPACING) + 1;
-        const rows = Math.ceil(h / SPACING) + 1;
-        const offX = (w - (cols - 1) * SPACING) / 2;
-        const offY = (h - (rows - 1) * SPACING) / 2;
-
-        for (let r = 0; r < rows; r++) {
-          for (let c = 0; c < cols; c++) {
-            dots.push({ x: offX + c * SPACING, y: offY + r * SPACING });
-          }
-        }
-      }
-      function draw() {
-        ctx!.clearRect(0, 0, w, h);
-        for (let i = 0; i < dots.length; i++) {
-          const d = dots[i];
-          const dx = mouse.x - d.x;
-          const dy = mouse.y - d.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          // default dot
-          ctx!.fillStyle = DOT_COLOR;
-          ctx!.beginPath();
-          ctx!.arc(d.x, d.y, RADIUS, 0, Math.PI * 2);
-          ctx!.fill();
-
-          // glow radius interaction
-          const interactionRadius = 140;
-          if (dist < interactionRadius) {
-            const intensity = 1 - (dist / interactionRadius);
-            ctx!.fillStyle = `rgba(0, 197, 180, ${intensity * 0.4})`; // pulse glow
-            ctx!.beginPath();
-            ctx!.arc(d.x, d.y, RADIUS * (1 + intensity * 1.5), 0, Math.PI * 2);
-            ctx!.fill();
-          }
-        }
-        animFrameId = requestAnimationFrame(draw);
-      }
-
-      const resizeObserver = new ResizeObserver(() => {
-        requestAnimationFrame(resize);
-      });
-      resizeObserver.observe(container);
-      section.addEventListener('mousemove', (e) => {
-        const rect = container.getBoundingClientRect();
-        mouse.x = (e as MouseEvent).clientX - rect.left;
-        mouse.y = (e as MouseEvent).clientY - rect.top;
-      });
-      section.addEventListener('mouseleave', () => {
-        mouse.x = -9999; mouse.y = -9999;
-      });
-
-      resize();
-
-      // Pausa o canvas quando a seção sai da tela, retoma quando volta
-      const tabsVisibilityObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            if (!animFrameId) draw();
-          } else {
-            cancelAnimationFrame(animFrameId);
-            animFrameId = 0;
-          }
-        });
-      }, { threshold: 0.01 });
-      if (section) tabsVisibilityObserver.observe(section);
-    }
-
-    // Escopo restrito à seção de tabs — evita conflito com DotGrid.astro
-    const tabsSection = document.querySelector('.tabs-section');
-    if (tabsSection) {
-      const container = tabsSection.querySelector('.dot-grid-container');
-      if (container) attach(container);
     }
   })();
 </script>

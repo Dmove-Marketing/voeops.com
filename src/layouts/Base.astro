@@ -124,12 +124,30 @@ const defaultJsonLd = {
           document.addEventListener('DOMContentLoaded', startObserver);
         }
 
+        var hasScrolled = false;
+
         function openWidget() {
+          hasScrolled = true; // Impede gatilhos de scroll futuros se já foi aberto
           if (!launcher) launcher = findLauncher();
           if (launcher) { launcher.click(); return; }
           // fallback se o widget ainda não carregou
           window.open('https://wa.me/5511999803580', '_blank', 'noopener,noreferrer');
         }
+
+        // Abre o widget automaticamente após a primeira rolagem (scroll de mais de 150px)
+        window.addEventListener('scroll', function () {
+          if (hasScrolled) return;
+          if (window.scrollY > 150) {
+            hasScrolled = true;
+            var el = findLauncher();
+            if (el) {
+              launcher = el;
+              openWidget();
+            } else {
+              hasScrolled = false; // Tenta novamente na próxima rolagem se o widget ainda não carregou
+            }
+          }
+        }, { passive: true });
 
         // Captura cliques em todos os links wa.me (CTAs, float, footer)
         document.addEventListener('click', function (e) {
