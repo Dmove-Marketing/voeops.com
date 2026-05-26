@@ -96,6 +96,11 @@ const defaultJsonLd = {
 
         // Observa o DOM até o botão do widget aparecer
         function findLauncher() {
+          var host = document.getElementById('voe-widget-host');
+          if (host && host.shadowRoot) {
+            var fab = host.shadowRoot.querySelector('.fab');
+            if (fab) return fab;
+          }
           return (
             document.querySelector('button[id*="voe"]') ||
             document.querySelector('button[class*="voe"]') ||
