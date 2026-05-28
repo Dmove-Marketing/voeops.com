@@ -153,29 +153,32 @@ const defaultJsonLd = {
           if (!hasScrolled) openWidget();
         }, 4000);
 
-        function pulseFloat() {
-          var float = document.querySelector('.whatsapp-float');
-          if (!float) return;
-          var s = float.style;
-          s.transition = 'transform 0.13s ease-out';
-          s.transform = 'scale(1.28)';
-          setTimeout(function () {
-            s.transform = 'scale(0.88)';
-            setTimeout(function () {
-              s.transform = 'scale(1.12)';
-              setTimeout(function () {
-                s.transform = 'scale(1)';
-                setTimeout(function () { s.transform = ''; s.transition = ''; }, 130);
-              }, 110);
-            }, 110);
-          }, 110);
+        // Shake no botão do widget (canto superior direito) quando já está aberto
+        function shakeFloat() {
+          if (!launcher) return;
+          var moves = ['-5px', '5px', '-4px', '4px', '-2px', '0px'];
+          var i = 0;
+          launcher.style.transition = 'transform 0.07s ease-out';
+          function step() {
+            if (i >= moves.length) {
+              launcher.style.transform = '';
+              launcher.style.transition = '';
+              return;
+            }
+            launcher.style.transform = 'translateX(' + moves[i++] + ')';
+            setTimeout(step, 70);
+          }
+          step();
         }
 
-        function openWidget() {
+        function openWidget(triggerEl) {
           hasScrolled = true;
           if (!launcher) launcher = findFab();
           if (launcher) {
-            if (widgetOpen) { pulseFloat(); return; }
+            if (widgetOpen) {
+              shakeFloat();
+              return;
+            }
             widgetOpen = true;
             skipToggle = true;
             launcher.click();
@@ -198,7 +201,7 @@ const defaultJsonLd = {
           var el = e.target.closest('a[href*="wa.me"]');
           if (!el || el.classList.contains('whatsapp-float')) return;
           e.preventDefault();
-          openWidget();
+          openWidget(el);
         }, true);
       })();
     </script>
