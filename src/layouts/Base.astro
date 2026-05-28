@@ -148,6 +148,11 @@ const defaultJsonLd = {
 
         var hasScrolled = false;
 
+        // Abre o widget automaticamente após 4 segundos
+        setTimeout(function () {
+          if (!hasScrolled) openWidget();
+        }, 4000);
+
         function pulseFloat() {
           var float = document.querySelector('.whatsapp-float');
           if (!float) return;
@@ -187,6 +192,7 @@ const defaultJsonLd = {
             openWidget();
           }
         }, { passive: true });
+
 
         document.addEventListener('click', function (e) {
           var el = e.target.closest('a[href*="wa.me"]');
