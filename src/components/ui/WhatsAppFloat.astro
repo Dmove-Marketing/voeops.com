@@ -41,14 +41,9 @@ const whatsappUrl = `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIC
   function initWhatsApp() {
     const btn = document.querySelector('.whatsapp-float') as HTMLElement;
     if (!btn) return;
-
     const delay = parseInt(btn.dataset.showAfter || '2000');
-
-    setTimeout(() => {
-      btn.classList.add('whatsapp-visible');
-    }, delay);
+    setTimeout(() => { btn.classList.add('whatsapp-visible'); }, delay);
   }
-
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initWhatsApp);
   } else {

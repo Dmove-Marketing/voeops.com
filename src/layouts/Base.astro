@@ -93,66 +93,104 @@ const defaultJsonLd = {
     <script>
       (function () {
         var launcher = null;
+        var widgetOpen = false;
+        var skipToggle = false;
+        var pendingOpen = false;
 
-        // Observa o DOM até o botão do widget aparecer
-        function findLauncher() {
+        function findFab() {
           var host = document.getElementById('voe-widget-host');
           if (host && host.shadowRoot) {
-            var fab = host.shadowRoot.querySelector('.fab');
-            if (fab) return fab;
+            return host.shadowRoot.querySelector('.fab');
           }
-          return (
-            document.querySelector('button[id*="voe"]') ||
-            document.querySelector('button[class*="voe"]') ||
-            document.querySelector('[data-voe-launcher]') ||
-            document.querySelector('iframe[src*="widget.voeops"]')
-          );
+          return null;
         }
 
-        var mo = new MutationObserver(function () {
-          var el = findLauncher();
-          if (el) { launcher = el; mo.disconnect(); }
+        function attachLauncherListener(el) {
+          if (el._voeListenerAttached) return;
+          el._voeListenerAttached = true;
+          el.addEventListener('click', function () {
+            if (skipToggle) { skipToggle = false; return; }
+            widgetOpen = !widgetOpen;
+          });
+        }
+
+        // Faz polling até o botão .fab aparecer na shadow root
+        function waitForLauncher(callback) {
+          var el = findFab();
+          if (el) { callback(el); return; }
+          var attempts = 0;
+          var t = setInterval(function () {
+            el = findFab();
+            attempts++;
+            if (el) { clearInterval(t); callback(el); }
+            else if (attempts > 100) { clearInterval(t); } // timeout 15s
+          }, 150);
+        }
+
+        // Inicia a busca pelo botão assim que a página carrega
+        waitForLauncher(function (el) {
+          launcher = el;
+          attachLauncherListener(launcher);
+          if (pendingOpen && !widgetOpen) {
+            pendingOpen = false;
+            widgetOpen = true;
+            skipToggle = true;
+            launcher.click();
+          }
         });
 
-        function startObserver() {
-          mo.observe(document.body, { childList: true, subtree: true });
-        }
-
-        if (document.body) {
-          startObserver();
-        } else {
-          document.addEventListener('DOMContentLoaded', startObserver);
-        }
+        // Reseta o estado quando o widget é fechado pelo botão interno do chat
+        window.addEventListener('message', function (e) {
+          if (e.data && e.data.type === 'voe-close') {
+            widgetOpen = false;
+          }
+        });
 
         var hasScrolled = false;
 
-        function openWidget() {
-          hasScrolled = true; // Impede gatilhos de scroll futuros se já foi aberto
-          if (!launcher) launcher = findLauncher();
-          if (launcher) { launcher.click(); return; }
-          // fallback se o widget ainda não carregou
-          window.open('https://wa.me/5511999803580', '_blank', 'noopener,noreferrer');
+        function pulseFloat() {
+          var float = document.querySelector('.whatsapp-float');
+          if (!float) return;
+          var s = float.style;
+          s.transition = 'transform 0.13s ease-out';
+          s.transform = 'scale(1.28)';
+          setTimeout(function () {
+            s.transform = 'scale(0.88)';
+            setTimeout(function () {
+              s.transform = 'scale(1.12)';
+              setTimeout(function () {
+                s.transform = 'scale(1)';
+                setTimeout(function () { s.transform = ''; s.transition = ''; }, 130);
+              }, 110);
+            }, 110);
+          }, 110);
         }
 
-        // Abre o widget automaticamente após a primeira rolagem (scroll de mais de 150px)
+        function openWidget() {
+          hasScrolled = true;
+          if (!launcher) launcher = findFab();
+          if (launcher) {
+            if (widgetOpen) { pulseFloat(); return; }
+            widgetOpen = true;
+            skipToggle = true;
+            launcher.click();
+            return;
+          }
+          // Widget ainda carregando — agenda abertura para quando estiver pronto
+          pendingOpen = true;
+        }
+
         window.addEventListener('scroll', function () {
           if (hasScrolled) return;
           if (window.scrollY > 150) {
             hasScrolled = true;
-            var el = findLauncher();
-            if (el) {
-              launcher = el;
-              openWidget();
-            } else {
-              hasScrolled = false; // Tenta novamente na próxima rolagem se o widget ainda não carregou
-            }
+            openWidget();
           }
         }, { passive: true });
 
-        // Captura cliques em todos os links wa.me (CTAs, float, footer)
         document.addEventListener('click', function (e) {
           var el = e.target.closest('a[href*="wa.me"]');
-          if (!el) return;
+          if (!el || el.classList.contains('whatsapp-float')) return;
           e.preventDefault();
           openWidget();
         }, true);
