@@ -205,5 +205,92 @@ const defaultJsonLd = {
         }, true);
       })();
     </script>
+
+    <!-- Responsividade do popup do widget no mobile.
+         O widget (widget.voeops.com/w.js) injeta um <iframe> no <body> com
+         largura/altura FIXAS de desktop (320x520) via style inline. No celular
+         isso estoura a viewport. Em vez de depender de CSS (que perde a corrida
+         de especificidade/dvh contra o estilo inline do script externo), aqui
+         forçamos as dimensões direto no elemento, recalculando a partir do
+         viewport real (visualViewport) e reaplicando em resize/rotação. -->
+    <script>
+      (function () {
+        var BP = 768; // breakpoint mobile
+
+        // Identifica o iframe do widget (light DOM, fora da shadow root do FAB).
+        // Casa pelo título ("Falar com ...") ou pelo src do /embed do widget,
+        // evitando iframes de YouTube/Vimeo/GTM.
+        function isWidgetIframe(f) {
+          if (!f || f.tagName !== 'IFRAME') return false;
+          var t = f.getAttribute('title') || '';
+          var s = f.getAttribute('src') || '';
+          if (t.indexOf('Falar com') === 0) return true;
+          if (s.indexOf('voeops.com/embed') !== -1) return true;
+          if (s.indexOf('/embed/') !== -1 &&
+              s.indexOf('youtube') === -1 && s.indexOf('youtu.be') === -1 &&
+              s.indexOf('vimeo') === -1 && s.indexOf('googletagmanager') === -1) return true;
+          return false;
+        }
+
+        function applySize(f) {
+          if (!isWidgetIframe(f)) return;
+          // Guarda o style original uma única vez para restaurar no desktop.
+          if (f.getAttribute('data-voe-orig-style') === null) {
+            f.setAttribute('data-voe-orig-style', f.getAttribute('style') || '');
+          }
+          if (window.innerWidth <= BP) {
+            var vw = window.innerWidth;
+            var vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+            var bottom = 84; // espaço para o botão flutuante
+            // Popup COMPACTO no mobile: pequeno, ancorado no canto inferior
+            // direito, sem cobrir a tela toda — o resto do site continua visível.
+            var w = Math.min(vw - 32, 300);
+            var h = Math.min(Math.round(vh * 0.6), 440);
+            if (h < 320) h = Math.min(vh - bottom - 12, 320); // garante mínimo usável, mas nunca estoura
+            f.style.setProperty('position', 'fixed', 'important');
+            f.style.setProperty('width', w + 'px', 'important');
+            f.style.setProperty('max-width', 'none', 'important');
+            f.style.setProperty('height', h + 'px', 'important');
+            f.style.setProperty('max-height', 'none', 'important');
+            f.style.setProperty('left', 'auto', 'important');
+            f.style.setProperty('right', '16px', 'important');
+            f.style.setProperty('top', 'auto', 'important');
+            f.style.setProperty('bottom', bottom + 'px', 'important');
+            f.style.setProperty('border-radius', '14px', 'important');
+          } else {
+            // Desktop: restaura exatamente o style original do widget.
+            f.setAttribute('style', f.getAttribute('data-voe-orig-style') || '');
+          }
+        }
+
+        function applyAll() {
+          var list = document.getElementsByTagName('iframe');
+          for (var i = 0; i < list.length; i++) applySize(list[i]);
+        }
+
+        // O iframe é criado de forma assíncrona pelo script do widget — observa o
+        // DOM para pegá-lo assim que aparecer (e quando reabre).
+        var mo = new MutationObserver(function (muts) {
+          for (var m = 0; m < muts.length; m++) {
+            var added = muts[m].addedNodes;
+            for (var n = 0; n < added.length; n++) {
+              var node = added[n];
+              if (!node || node.nodeType !== 1) continue;
+              if (node.tagName === 'IFRAME') applySize(node);
+              else if (node.getElementsByTagName) {
+                var inner = node.getElementsByTagName('iframe');
+                for (var k = 0; k < inner.length; k++) applySize(inner[k]);
+              }
+            }
+          }
+        });
+        if (document.body) mo.observe(document.body, { childList: true, subtree: true });
+
+        applyAll();
+        window.addEventListener('resize', applyAll);
+        window.addEventListener('orientationchange', applyAll);
+        if (window.visualViewport) window.visualViewport.addEventListener('resize', applyAll);
+      })();
+    </script>
   </body>
 </html>

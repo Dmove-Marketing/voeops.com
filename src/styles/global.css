@@ -81,6 +81,16 @@ body {
   overflow-x: hidden;
 }
 
+/* Mobile: o fundo vai para o <html> e o <body> fica transparente, para que o
+   canvas de partículas (z-index:-1, filho do <body>) seja pintado ENTRE o
+   fundo e o conteúdo — assim as bolinhas ficam atrás de tudo no celular.
+   No desktop nada disso se aplica (fundo permanece no body, comportamento
+   original). */
+@media (max-width: 768px) {
+  html { background-color: var(--bg-primary); }
+  body { background-color: transparent; }
+}
+
 img,
 video {
   max-width: 100%;
@@ -98,6 +108,31 @@ button {
   border: none;
   background: none;
   font: inherit;
+}
+
+/* === Widget de chat (popup) — responsivo no mobile ========================
+   O widget é injetado pelo script externo widget.voeops.com/w.js como um
+   <iframe> no <body> (light DOM), com largura/altura fixas em px (estilo
+   inline). No celular isso estoura a tela e cria scroll horizontal.
+   Como o iframe fica no DOM da própria página, este CSS o alcança mesmo o
+   script vindo de outro domínio; o !important vence os estilos inline.
+   Selecionamos pelo src/title (o iframe ainda não tem id em produção) e
+   também por #voe-widget-iframe (versão nova do w.js). */
+@media (max-width: 768px) {
+  iframe[src*="widget.voeops.com"],
+  iframe[title^="Falar com"],
+  #voe-widget-iframe {
+    /* Popup compacto no mobile, ancorado no canto — não cobre a tela toda */
+    width: min(calc(100vw - 32px), 300px) !important;
+    max-width: 300px !important;
+    height: min(60vh, 440px) !important;
+    max-height: 440px !important;
+    left: auto !important;
+    right: 16px !important;
+    top: auto !important;
+    bottom: 84px !important;
+    border-radius: 14px !important;
+  }
 }
 
 /* === CSS Variables === */
