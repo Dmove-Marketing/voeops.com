@@ -152,10 +152,16 @@ const defaultJsonLd = {
 
         var hasScrolled = false;
 
-        // Abre o widget automaticamente após 4 segundos
-        setTimeout(function () {
-          if (!hasScrolled) openWidget();
-        }, 4000);
+        // Abertura automática (4s e scroll) acontece SOMENTE na página inicial.
+        // Nas demais páginas o widget só abre quando o usuário clica no botão.
+        var isHome = window.location.pathname === '/';
+
+        // Abre o widget automaticamente após 4 segundos (somente na home)
+        if (isHome) {
+          setTimeout(function () {
+            if (!hasScrolled) openWidget();
+          }, 4000);
+        }
 
         // Shake no botão do widget (canto superior direito) quando já está aberto
         function shakeFloat() {
@@ -192,13 +198,16 @@ const defaultJsonLd = {
           pendingOpen = true;
         }
 
-        window.addEventListener('scroll', function () {
-          if (hasScrolled) return;
-          if (window.scrollY > 150) {
-            hasScrolled = true;
-            openWidget();
-          }
-        }, { passive: true });
+        // Abre ao rolar a página > 150px (somente na home)
+        if (isHome) {
+          window.addEventListener('scroll', function () {
+            if (hasScrolled) return;
+            if (window.scrollY > 150) {
+              hasScrolled = true;
+              openWidget();
+            }
+          }, { passive: true });
+        }
 
 
         document.addEventListener('click', function (e) {
