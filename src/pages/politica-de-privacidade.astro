@@ -1,0 +1,330 @@
+---
+// src/pages/politica-de-privacidade.astro
+// Política de Privacidade da Voe — conformidade LGPD + Google API Services
+// User Data Policy (Limited Use) para a integração com o Google Calendar.
+import Base from '../layouts/Base.astro';
+import Header from '../components/ui/Header.astro';
+import Footer from '../components/ui/Footer.astro';
+
+const lastUpdate = '23 de junho de 2026';
+---
+
+<Base
+  title="Política de Privacidade — Voe"
+  description="Saiba como a Voe coleta, usa, armazena e protege seus dados pessoais, em conformidade com a LGPD e com as políticas de dados do Google."
+  noIndex={false}
+>
+  <Header />
+
+  <!-- HERO -->
+  <section class="legal-hero">
+    <div class="container">
+      <div class="eyebrow" data-animate="fade-up">Privacidade</div>
+      <h1 class="legal-hero-title" data-animate="fade-up" data-delay="0.1">
+        Política de <em>Privacidade</em>
+      </h1>
+      <p class="legal-hero-sub" data-animate="fade-up" data-delay="0.2">
+        Transparência sobre como tratamos os seus dados. Última atualização: {lastUpdate}.
+      </p>
+    </div>
+  </section>
+
+  <!-- CONTEÚDO -->
+  <section class="legal-section">
+    <div class="container">
+      <article class="legal-doc">
+
+        <p class="legal-intro">
+          Esta Política de Privacidade descreve como a <strong>Voe Ops Consultoria em
+          Tecnologia da Informação LTDA</strong> ("Voe", "nós") coleta, utiliza,
+          armazena, compartilha e protege os dados pessoais de usuários, clientes e
+          demais titulares, em conformidade com a Lei nº 13.709/2018 (Lei Geral de
+          Proteção de Dados — LGPD) e com as políticas das plataformas que integramos.
+        </p>
+
+        <h2>1. Quem é o controlador dos dados</h2>
+        <p>
+          O controlador responsável pelo tratamento dos dados descritos nesta política é:
+        </p>
+        <ul class="legal-list">
+          <li><strong>Razão social:</strong> Voe Ops Consultoria em Tecnologia da Informação LTDA</li>
+          <li><strong>CNPJ:</strong> 66.614.730/0001-90</li>
+          <li><strong>Endereço:</strong> Avenida Industrial, 1680 — Santo André/SP — CEP 09080-500</li>
+          <li><strong>Contato de privacidade:</strong> <a href="mailto:contato@voeops.com">contato@voeops.com</a></li>
+        </ul>
+        <p>
+          A Voe oferece uma plataforma de CRM com WhatsApp, automações e inteligência
+          artificial, atendendo tanto pessoas jurídicas quanto pessoas físicas.
+        </p>
+
+        <h2>2. Papéis: controladora e operadora</h2>
+        <p>
+          Em relação aos dados de cadastro e uso dos nossos <strong>assinantes</strong>
+          (quem contrata a Voe), atuamos como <strong>controladora</strong>. Já em
+          relação aos dados que nossos assinantes inserem na plataforma sobre seus
+          próprios contatos, leads e clientes, atuamos como <strong>operadora</strong>,
+          tratando esses dados em nome e segundo as instruções do assinante, que é o
+          controlador desses dados.
+        </p>
+
+        <h2>3. Dados que coletamos</h2>
+        <p>Coletamos as seguintes categorias de dados, conforme o uso da plataforma:</p>
+        <ul class="legal-list">
+          <li><strong>Dados de cadastro do assinante:</strong> nome, e-mail, telefone e dados de identificação da empresa.</li>
+          <li><strong>Dados de pagamento:</strong> processados por nosso operador de pagamentos (Stripe); não armazenamos os dados completos do cartão.</li>
+          <li><strong>Dados de contatos e leads:</strong> nome, telefone, e-mail, Instagram, empresa, cargo e demais campos cadastrados pelo assinante.</li>
+          <li><strong>Conversas e mídias de WhatsApp:</strong> mensagens, áudios (e suas transcrições), imagens, vídeos e documentos trocados pelos canais conectados.</li>
+          <li><strong>Dados de uso e técnicos:</strong> registros de acesso (logs), endereço IP e cookies.</li>
+          <li><strong>Dados do Google Agenda (quando a integração é ativada):</strong> ver a Seção 5.</li>
+        </ul>
+
+        <h2>4. Como e por que usamos os dados</h2>
+        <p>
+          Tratamos dados pessoais apenas para finalidades específicas e com a respectiva
+          base legal exigida pela LGPD:
+        </p>
+        <ul class="legal-list">
+          <li><strong>Operar a plataforma</strong> (CRM, inbox de WhatsApp, atividades, automações, agentes de IA) — base legal: execução de contrato.</li>
+          <li><strong>Processar cobranças e gerenciar a assinatura</strong> — base legal: execução de contrato e obrigação legal.</li>
+          <li><strong>Comunicações de marketing e novidades</strong> — base legal: consentimento, que pode ser revogado a qualquer momento.</li>
+          <li><strong>Garantir segurança, prevenir fraudes e cumprir obrigações legais</strong> — base legal: legítimo interesse e obrigação legal.</li>
+          <li><strong>Sincronizar a agenda</strong> quando o usuário conecta o Google Agenda — base legal: consentimento e execução de contrato (Seção 5).</li>
+        </ul>
+
+        <h2>5. Integração com o Google Agenda (Google Calendar)</h2>
+        <p>
+          Quando um usuário opta por conectar sua conta Google à Voe (em Perfil →
+          Ferramentas), solicitamos autorização ao Google para acessar dados estritamente
+          necessários à funcionalidade de sincronização de agenda. Os escopos solicitados são:
+        </p>
+        <ul class="legal-list">
+          <li><code>https://www.googleapis.com/auth/calendar.events</code> — para criar, ler e atualizar eventos na agenda do usuário, mantendo as atividades da Voe e o Google Agenda sincronizados.</li>
+          <li><code>https://www.googleapis.com/auth/userinfo.email</code> — para identificar e exibir qual conta Google está conectada.</li>
+        </ul>
+        <p>
+          <strong>Uso Limitado (Limited Use).</strong> O uso e a transferência, pela Voe,
+          de informações recebidas das APIs do Google obedecem à
+          <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener">Política de Dados de Usuário dos Serviços de API do Google</a>,
+          incluindo os requisitos de Uso Limitado. Especificamente, os dados obtidos do
+          Google:
+        </p>
+        <ul class="legal-list">
+          <li>são usados <strong>exclusivamente</strong> para a funcionalidade de sincronização de agenda que o usuário ativou;</li>
+          <li><strong>não</strong> são vendidos a terceiros;</li>
+          <li><strong>não</strong> são usados para publicidade;</li>
+          <li><strong>não</strong> são usados para treinar modelos de inteligência artificial generalizados;</li>
+          <li><strong>não</strong> são lidos por seres humanos, salvo quando estritamente necessário para segurança, suporte ao próprio usuário, cumprimento de obrigação legal ou com consentimento expresso.</li>
+        </ul>
+        <p>
+          <strong>Segurança e exclusão.</strong> Os tokens de acesso ao Google são
+          armazenados de forma criptografada (AES-256-GCM). Quando o usuário
+          <strong>desconecta</strong> a integração — ou encerra a conta — revogamos a
+          autorização junto ao Google e <strong>excluímos</strong> os tokens e os dados de
+          conexão correspondentes.
+        </p>
+
+        <h2>6. Com quem compartilhamos dados (operadores)</h2>
+        <p>
+          Não vendemos dados pessoais. Compartilhamos dados apenas com prestadores de
+          serviço (operadores/subprocessadores) necessários ao funcionamento da plataforma:
+        </p>
+        <ul class="legal-list">
+          <li><strong>Supabase</strong> — banco de dados e armazenamento de arquivos.</li>
+          <li><strong>Vercel</strong> — hospedagem da aplicação web.</li>
+          <li><strong>Hostinger</strong> — infraestrutura de servidor (backend).</li>
+          <li><strong>Meta Platforms (WhatsApp)</strong> — envio e recebimento de mensagens.</li>
+          <li><strong>Stripe</strong> — processamento de pagamentos.</li>
+          <li><strong>OpenAI</strong> — transcrição de áudios de mensagens.</li>
+          <li><strong>Google</strong> — integração com o Google Agenda.</li>
+        </ul>
+
+        <h2>7. Transferência internacional de dados</h2>
+        <p>
+          Alguns dos operadores acima estão localizados fora do Brasil. Nesses casos, a
+          transferência internacional de dados é realizada com as salvaguardas exigidas
+          pela LGPD, observando-se padrões adequados de proteção.
+        </p>
+
+        <h2>8. Armazenamento e segurança</h2>
+        <p>Adotamos medidas técnicas e organizacionais para proteger os dados, incluindo:</p>
+        <ul class="legal-list">
+          <li>criptografia de dados sensíveis em repouso e em trânsito;</li>
+          <li>isolamento de dados por organização (Row Level Security) na base de dados;</li>
+          <li>arquivos de mídia armazenados em buckets privados, acessíveis apenas por links temporários e assinados;</li>
+          <li>controle de acesso por perfil e validação de autenticidade nas integrações.</li>
+        </ul>
+
+        <h2>9. Por quanto tempo guardamos os dados (retenção)</h2>
+        <p>Mantemos os dados apenas pelo tempo necessário a cada finalidade:</p>
+        <ul class="legal-list">
+          <li><strong>Dados da conta do assinante:</strong> mantidos enquanto a conta estiver ativa e por até <strong>90 dias</strong> após o cancelamento, quando são excluídos ou anonimizados.</li>
+          <li><strong>Dados de contatos, leads e conversas:</strong> mantidos enquanto a conta estiver ativa; excluídos junto com a conta (até 90 dias após o cancelamento).</li>
+          <li><strong>Dados do Google Agenda:</strong> excluídos imediatamente ao desconectar a integração ou encerrar a conta.</li>
+          <li><strong>Dados fiscais e financeiros:</strong> mantidos por <strong>5 anos</strong>, conforme obrigação legal.</li>
+          <li><strong>Logs de acesso:</strong> mantidos por <strong>6 meses</strong>, conforme o Marco Civil da Internet.</li>
+          <li><strong>Dados de marketing:</strong> mantidos até a revogação do consentimento pelo titular.</li>
+        </ul>
+
+        <h2>10. Direitos do titular</h2>
+        <p>
+          Nos termos da LGPD, você pode, a qualquer momento, solicitar: confirmação da
+          existência de tratamento; acesso aos seus dados; correção de dados incompletos
+          ou desatualizados; anonimização, bloqueio ou eliminação de dados desnecessários;
+          portabilidade; informação sobre compartilhamento; e revogação do consentimento.
+          Para exercer esses direitos, escreva para
+          <a href="mailto:contato@voeops.com">contato@voeops.com</a>.
+        </p>
+
+        <h2>11. Cookies</h2>
+        <p>
+          Utilizamos cookies e tecnologias semelhantes para manter sessões autenticadas,
+          medir o uso e melhorar a experiência. Isso inclui cookies de autenticação,
+          ferramentas de analytics (Google Tag Manager) e captura de parâmetros de campanha
+          (UTM). Você pode gerenciar a aceitação por meio do aviso de cookies exibido em
+          nosso site e nas configurações do seu navegador.
+        </p>
+
+        <h2>12. Encarregado pelo tratamento de dados (DPO)</h2>
+        <p>
+          Para questões relacionadas à privacidade e à proteção de dados, nosso canal de
+          contato com o Encarregado é
+          <a href="mailto:contato@voeops.com">contato@voeops.com</a>.
+        </p>
+
+        <h2>13. Alterações nesta política</h2>
+        <p>
+          Esta Política de Privacidade pode ser atualizada periodicamente. A data de
+          "última atualização" no topo desta página reflete a versão vigente. Recomendamos
+          a revisão regular deste documento.
+        </p>
+
+      </article>
+    </div>
+  </section>
+
+  <Footer />
+
+  <script>
+    import { initScrollAnimations } from '../scripts/animations';
+    function init() { initScrollAnimations(); }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</Base>
+
+<style>
+  .legal-hero {
+    padding: 140px 0 50px;
+    background:
+      radial-gradient(900px 500px at 78% -10%, rgba(0, 197, 180, 0.18), transparent 60%),
+      linear-gradient(180deg, #1f3046 0%, #243345 50%, #2a3b50 100%);
+    color: var(--off-white);
+  }
+
+  .legal-hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 5.5vw, 4.2rem);
+    line-height: 1.0;
+    letter-spacing: -0.04em;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: var(--space-md);
+  }
+
+  .legal-hero-title em {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--turquesa);
+  }
+
+  .legal-hero-sub {
+    font-size: 1.05rem;
+    color: rgba(237, 239, 234, 0.72);
+    max-width: 620px;
+  }
+
+  .legal-section {
+    background: var(--off-white);
+    padding: 70px 0 110px;
+  }
+
+  .legal-doc {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .legal-intro {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--carvao-light);
+    padding-bottom: 28px;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .legal-doc h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--ardosia);
+    letter-spacing: -0.01em;
+    margin: 40px 0 14px;
+  }
+
+  .legal-doc p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--carvao-light);
+    margin-bottom: 14px;
+  }
+
+  .legal-doc a {
+    color: var(--turquesa);
+    text-decoration: underline;
+  }
+
+  .legal-doc strong {
+    color: var(--ardosia);
+  }
+
+  .legal-doc code {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    background: rgba(0, 197, 180, 0.10);
+    color: var(--ardosia);
+    padding: 2px 6px;
+    border-radius: 4px;
+    word-break: break-all;
+  }
+
+  .legal-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 4px 0 18px;
+  }
+
+  .legal-list li {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--carvao-light);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .legal-list li::before {
+    content: "·";
+    position: absolute;
+    left: 2px;
+    color: var(--turquesa);
+    font-weight: 700;
+  }
+
+  @media (max-width: 768px) {
+    .legal-hero { padding: 120px 0 40px; }
+  }
+</style>

@@ -1,0 +1,253 @@
+---
+// src/pages/termos.astro
+// Termos de Uso da Voe — regras de uso da plataforma.
+import Base from '../layouts/Base.astro';
+import Header from '../components/ui/Header.astro';
+import Footer from '../components/ui/Footer.astro';
+
+const lastUpdate = '23 de junho de 2026';
+---
+
+<Base
+  title="Termos de Uso — Voe"
+  description="Conheça os Termos de Uso da plataforma Voe: regras de utilização, responsabilidades, planos e cancelamento."
+  noIndex={false}
+>
+  <Header />
+
+  <!-- HERO -->
+  <section class="legal-hero">
+    <div class="container">
+      <div class="eyebrow" data-animate="fade-up">Termos</div>
+      <h1 class="legal-hero-title" data-animate="fade-up" data-delay="0.1">
+        Termos de <em>Uso</em>
+      </h1>
+      <p class="legal-hero-sub" data-animate="fade-up" data-delay="0.2">
+        As regras para utilização da plataforma Voe. Última atualização: {lastUpdate}.
+      </p>
+    </div>
+  </section>
+
+  <!-- CONTEÚDO -->
+  <section class="legal-section">
+    <div class="container">
+      <article class="legal-doc">
+
+        <p class="legal-intro">
+          Estes Termos de Uso regulam o acesso e a utilização da plataforma Voe,
+          oferecida por <strong>Voe Ops Consultoria em Tecnologia da Informação LTDA</strong>,
+          CNPJ 66.614.730/0001-90, com sede na Avenida Industrial, 1680 — Santo André/SP —
+          CEP 09080-500 ("Voe"). Ao criar uma conta ou utilizar a plataforma, você concorda
+          com estes termos.
+        </p>
+
+        <h2>1. Definições</h2>
+        <p>
+          "Plataforma" refere-se ao sistema Voe (CRM, inbox de WhatsApp, automações,
+          agentes de IA e demais funcionalidades). "Usuário" é a pessoa física ou jurídica
+          que acessa a plataforma. "Assinante" é o titular da conta contratante.
+        </p>
+
+        <h2>2. Cadastro e conta</h2>
+        <p>
+          Para usar a plataforma é necessário criar uma conta com informações verdadeiras e
+          atualizadas. O Usuário é responsável por manter a confidencialidade de suas
+          credenciais e por todas as atividades realizadas em sua conta.
+        </p>
+
+        <h2>3. Uso permitido</h2>
+        <p>O Usuário concorda em utilizar a plataforma de forma lícita e, em especial, a não:</p>
+        <ul class="legal-list">
+          <li>enviar mensagens em desacordo com as políticas do WhatsApp / Meta ou com a legislação aplicável;</li>
+          <li>praticar spam, envio não autorizado de mensagens em massa ou qualquer abuso de comunicação;</li>
+          <li>violar direitos de terceiros, incluindo privacidade e proteção de dados;</li>
+          <li>tentar acessar, comprometer ou interferir indevidamente na segurança da plataforma.</li>
+        </ul>
+
+        <h2>4. Responsabilidade pelos dados inseridos</h2>
+        <p>
+          O Assinante é o controlador dos dados de seus contatos, leads e clientes inseridos
+          na plataforma, sendo responsável por obter as devidas bases legais para o
+          tratamento desses dados. A Voe atua como operadora desses dados, conforme descrito
+          na <a href="/politica-de-privacidade">Política de Privacidade</a>.
+        </p>
+
+        <h2>5. Planos, pagamento e cancelamento</h2>
+        <p>
+          A utilização da plataforma está sujeita à contratação de um plano. Os planos
+          mensais podem ser cancelados a qualquer momento, sem fidelidade. Planos anuais
+          possuem compromisso de 12 meses em contrapartida ao desconto aplicável. Custos de
+          mensageria do WhatsApp seguem a tabela da Meta e são de responsabilidade do
+          Assinante. Os detalhes de preços vigentes estão disponíveis na página de
+          <a href="/planos">Planos e Preços</a>.
+        </p>
+
+        <h2>6. Integrações de terceiros</h2>
+        <p>
+          A plataforma integra serviços de terceiros (como WhatsApp/Meta, Google e Stripe).
+          O uso dessas integrações está sujeito também aos termos e políticas dos respectivos
+          provedores. A Voe não se responsabiliza por indisponibilidades ou alterações nos
+          serviços de terceiros.
+        </p>
+
+        <h2>7. Disponibilidade e suporte</h2>
+        <p>
+          Empenhamo-nos para manter a plataforma disponível e segura, mas não garantimos
+          funcionamento ininterrupto. Manutenções programadas e eventuais interrupções podem
+          ocorrer. O suporte é prestado pelos canais oficiais da Voe.
+        </p>
+
+        <h2>8. Propriedade intelectual</h2>
+        <p>
+          A plataforma, sua marca, código e conteúdos são de titularidade da Voe. Estes
+          Termos não transferem nenhum direito de propriedade intelectual ao Usuário, que
+          recebe apenas uma licença limitada de uso enquanto durar a contratação.
+        </p>
+
+        <h2>9. Limitação de responsabilidade</h2>
+        <p>
+          Na máxima extensão permitida pela lei, a Voe não se responsabiliza por danos
+          indiretos, lucros cessantes ou perdas decorrentes do uso ou da impossibilidade de
+          uso da plataforma, ressalvadas as hipóteses de dolo ou culpa grave.
+        </p>
+
+        <h2>10. Alterações dos termos</h2>
+        <p>
+          Estes Termos de Uso podem ser atualizados periodicamente. A data de "última
+          atualização" no topo reflete a versão vigente. O uso continuado da plataforma após
+          alterações implica concordância com a nova versão.
+        </p>
+
+        <h2>11. Foro e legislação aplicável</h2>
+        <p>
+          Estes Termos são regidos pela legislação brasileira. Fica eleito o foro da comarca
+          de Santo André/SP para dirimir eventuais controvérsias, com renúncia a qualquer
+          outro, por mais privilegiado que seja.
+        </p>
+
+        <h2>12. Contato</h2>
+        <p>
+          Dúvidas sobre estes Termos podem ser enviadas para
+          <a href="mailto:contato@voeops.com">contato@voeops.com</a>.
+        </p>
+
+      </article>
+    </div>
+  </section>
+
+  <Footer />
+
+  <script>
+    import { initScrollAnimations } from '../scripts/animations';
+    function init() { initScrollAnimations(); }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</Base>
+
+<style>
+  .legal-hero {
+    padding: 140px 0 50px;
+    background:
+      radial-gradient(900px 500px at 78% -10%, rgba(0, 197, 180, 0.18), transparent 60%),
+      linear-gradient(180deg, #1f3046 0%, #243345 50%, #2a3b50 100%);
+    color: var(--off-white);
+  }
+
+  .legal-hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 5.5vw, 4.2rem);
+    line-height: 1.0;
+    letter-spacing: -0.04em;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: var(--space-md);
+  }
+
+  .legal-hero-title em {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--turquesa);
+  }
+
+  .legal-hero-sub {
+    font-size: 1.05rem;
+    color: rgba(237, 239, 234, 0.72);
+    max-width: 620px;
+  }
+
+  .legal-section {
+    background: var(--off-white);
+    padding: 70px 0 110px;
+  }
+
+  .legal-doc {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .legal-intro {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--carvao-light);
+    padding-bottom: 28px;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .legal-doc h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--ardosia);
+    letter-spacing: -0.01em;
+    margin: 40px 0 14px;
+  }
+
+  .legal-doc p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--carvao-light);
+    margin-bottom: 14px;
+  }
+
+  .legal-doc a {
+    color: var(--turquesa);
+    text-decoration: underline;
+  }
+
+  .legal-doc strong {
+    color: var(--ardosia);
+  }
+
+  .legal-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 4px 0 18px;
+  }
+
+  .legal-list li {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--carvao-light);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .legal-list li::before {
+    content: "·";
+    position: absolute;
+    left: 2px;
+    color: var(--turquesa);
+    font-weight: 700;
+  }
+
+  @media (max-width: 768px) {
+    .legal-hero { padding: 120px 0 40px; }
+  }
+</style>
