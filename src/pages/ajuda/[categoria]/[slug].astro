@@ -1,0 +1,359 @@
+---
+// src/pages/ajuda/[categoria]/[slug].astro
+// Página de um artigo da Central de Ajuda.
+import { render } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import Header from '../../../components/ui/Header.astro';
+import Footer from '../../../components/ui/Footer.astro';
+import {
+  getArtigos,
+  slugDoArtigo,
+  urlDoArtigo,
+  CATEGORIAS,
+} from '../../../lib/ajuda';
+
+export async function getStaticPaths() {
+  const artigos = await getArtigos();
+  return artigos.map((artigo) => {
+    const relacionados = artigos
+      .filter(
+        (a) => a.data.categoria === artigo.data.categoria && a.id !== artigo.id
+      )
+      .slice(0, 3);
+    return {
+      params: { categoria: artigo.data.categoria, slug: slugDoArtigo(artigo) },
+      props: { artigo, relacionados },
+    };
+  });
+}
+
+const { artigo, relacionados } = Astro.props;
+const { Content } = await render(artigo);
+const categoria = CATEGORIAS[artigo.data.categoria];
+const url = `https://voeops.com${urlDoArtigo(artigo)}/`;
+
+const dataFormatada = artigo.data.atualizado.toLocaleDateString('pt-BR', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: artigo.data.titulo,
+  description: artigo.data.descricao,
+  url,
+  dateModified: artigo.data.atualizado.toISOString(),
+  publisher: {
+    '@type': 'Organization',
+    name: 'Voe',
+    url: 'https://voeops.com',
+  },
+};
+---
+
+<Base
+  title={`${artigo.data.titulo} — Ajuda Voe`}
+  description={artigo.data.descricao}
+  canonical={url}
+  noIndex={!artigo.data.revisado}
+  jsonLd={jsonLd}
+>
+  <Header />
+
+  <article class="artigo">
+    <div class="container container--estreito">
+      <nav class="breadcrumb" aria-label="Navegação estrutural">
+        <a href="/ajuda">Central de Ajuda</a>
+        <span aria-hidden="true">/</span>
+        <a href={`/ajuda/${artigo.data.categoria}`}>{categoria.nome}</a>
+      </nav>
+
+      <h1 class="artigo-titulo">{artigo.data.titulo}</h1>
+      <p class="artigo-desc">{artigo.data.descricao}</p>
+
+      {!artigo.data.revisado && (
+        <div class="artigo-aviso-dev">
+          <strong>Rascunho — não revisado.</strong> Este artigo foi escrito a
+          partir do código e da documentação interna, mas ainda não teve os
+          passos conferidos na interface real. Não será publicado enquanto
+          estiver com <code>revisado: false</code>.
+        </div>
+      )}
+
+      <div class="artigo-conteudo">
+        <Content />
+      </div>
+
+      <footer class="artigo-rodape">
+        <p class="artigo-data">Atualizado em {dataFormatada}</p>
+
+        <div class="artigo-feedback" data-artigo={artigo.id}>
+          <span>Este artigo resolveu seu problema?</span>
+          <div class="artigo-feedback-botoes">
+            <button type="button" data-util="sim">Sim</button>
+            <button type="button" data-util="nao">Não</button>
+          </div>
+          <p class="artigo-feedback-obrigado" hidden>
+            Obrigado! Seu retorno ajuda a melhorar a Central.
+          </p>
+        </div>
+      </footer>
+
+      {relacionados.length > 0 && (
+        <section class="artigo-relacionados">
+          <h2>Artigos relacionados</h2>
+          <ul>
+            {relacionados.map((rel) => (
+              <li>
+                <a href={urlDoArtigo(rel)}>{rel.data.titulo}</a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </div>
+  </article>
+
+  <Footer />
+
+  <script>
+    // Feedback de utilidade — apenas dispara evento para a camada de tracking
+    // já existente no site (dataLayer). Não coleta nada além do voto.
+    document.querySelectorAll<HTMLElement>('.artigo-feedback').forEach((box) => {
+      const artigoId = box.dataset.artigo;
+      box.querySelectorAll<HTMLButtonElement>('button[data-util]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const util = btn.dataset.util === 'sim';
+          (window as any).dataLayer = (window as any).dataLayer || [];
+          (window as any).dataLayer.push({
+            event: 'ajuda_feedback',
+            artigo: artigoId,
+            util,
+          });
+          box.querySelector<HTMLElement>('.artigo-feedback-botoes')!.hidden = true;
+          box.querySelector<HTMLElement>('.artigo-feedback-obrigado')!.hidden = false;
+        });
+      });
+    });
+  </script>
+</Base>
+
+<style>
+  .artigo { padding: 140px 0 var(--space-4xl); }
+
+  .container--estreito { max-width: 760px; }
+
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: var(--space-md);
+    flex-wrap: wrap;
+  }
+
+  .breadcrumb a { color: var(--turquesa); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+
+  .artigo-titulo {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: var(--space-sm);
+  }
+
+  .artigo-desc {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-xl);
+  }
+
+  .artigo-aviso-dev {
+    padding: 14px 18px;
+    margin-bottom: var(--space-xl);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    background: var(--terracotta-10);
+    border: 1px dashed var(--terracotta);
+    border-radius: var(--radius-md);
+  }
+
+  .artigo-aviso-dev code { font-family: var(--font-mono); font-size: 0.85em; }
+
+  /* === Conteúdo markdown === */
+  .artigo-conteudo :global(h2) {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: var(--space-2xl) 0 var(--space-md);
+    letter-spacing: -0.01em;
+  }
+
+  .artigo-conteudo :global(h3) {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin: var(--space-xl) 0 var(--space-sm);
+  }
+
+  .artigo-conteudo :global(p) {
+    margin-bottom: var(--space-md);
+    line-height: 1.7;
+    color: var(--text-primary);
+  }
+
+  .artigo-conteudo :global(ul),
+  .artigo-conteudo :global(ol) {
+    margin: 0 0 var(--space-md) var(--space-lg);
+    line-height: 1.7;
+  }
+
+  .artigo-conteudo :global(li) { margin-bottom: 8px; }
+
+  .artigo-conteudo :global(a) {
+    color: var(--turquesa);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .artigo-conteudo :global(strong) { font-weight: 600; }
+
+  .artigo-conteudo :global(code) {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    padding: 2px 6px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+  }
+
+  .artigo-conteudo :global(pre) {
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+    background: var(--ardosia-dark);
+    color: var(--text-on-dark);
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+  }
+
+  .artigo-conteudo :global(pre code) {
+    background: none;
+    padding: 0;
+    color: inherit;
+  }
+
+  .artigo-conteudo :global(blockquote) {
+    padding: var(--space-md) var(--space-lg);
+    margin: 0 0 var(--space-md);
+    background: var(--turquesa-10);
+    border-left: 3px solid var(--turquesa);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  }
+
+  .artigo-conteudo :global(blockquote p:last-child) { margin-bottom: 0; }
+
+  /* Tabelas rolam sozinhas no mobile em vez de estourar a página */
+  .artigo-conteudo :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: var(--space-md);
+    font-size: 0.925rem;
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .artigo-conteudo :global(th),
+  .artigo-conteudo :global(td) {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .artigo-conteudo :global(th) {
+    font-weight: 600;
+    background: var(--bg-secondary);
+  }
+
+  .artigo-conteudo :global(hr) {
+    border: none;
+    border-top: 1px solid var(--glass-border);
+    margin: var(--space-xl) 0;
+  }
+
+  /* === Rodapé === */
+  .artigo-rodape {
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--glass-border);
+  }
+
+  .artigo-data {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: var(--space-lg);
+  }
+
+  .artigo-feedback {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    padding: var(--space-md) var(--space-lg);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    font-size: 0.925rem;
+  }
+
+  .artigo-feedback-botoes { display: flex; gap: 8px; }
+
+  .artigo-feedback button {
+    padding: 6px 18px;
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .artigo-feedback button:hover {
+    border-color: var(--turquesa);
+    color: var(--turquesa);
+  }
+
+  .artigo-feedback-obrigado { color: var(--turquesa); font-weight: 500; }
+
+  /* === Relacionados === */
+  .artigo-relacionados { margin-top: var(--space-2xl); }
+
+  .artigo-relacionados h2 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: var(--space-md);
+  }
+
+  .artigo-relacionados ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .artigo-relacionados a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+
+  .artigo-relacionados a:hover { color: var(--turquesa); }
+
+  @media (max-width: 768px) {
+    .artigo { padding: 120px 0 var(--space-3xl); }
+  }
+</style>

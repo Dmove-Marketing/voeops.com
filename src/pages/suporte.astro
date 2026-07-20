@@ -1,0 +1,375 @@
+---
+// src/pages/suporte.astro
+// Canal de suporte — acessível SEM login.
+//
+// Existe justamente para o pior chamado possível: "não consigo entrar".
+// Quem não consegue autenticar não tem como pedir ajuda dentro do app.
+//
+// Site estático: o formulário não envia para servidor nenhum. Ele monta uma
+// mensagem estruturada e abre o WhatsApp do suporte já preenchido — que é o
+// canal de atendimento definido (ver docs/plano-suporte.md, decisão "a").
+import Base from '../layouts/Base.astro';
+import Header from '../components/ui/Header.astro';
+import Footer from '../components/ui/Footer.astro';
+import { getArtigos, urlDoArtigo } from '../lib/ajuda';
+
+// TODO(bruno): trocar pelo número DEDICADO de suporte quando ele existir.
+// Hoje aponta para o número comercial já público no rodapé do site.
+// Ver "Pendências" em docs/plano-suporte.md.
+const WHATSAPP_SUPORTE = '5511999803580';
+const EMAIL_SUPORTE = 'contato@voeops.com';
+
+// TODO(bruno): confirmar antes de publicar.
+const HORARIO = 'Segunda a sexta, das 9h às 18h';
+const SLA = 'Respondemos em até 4 horas úteis';
+
+const artigos = await getArtigos();
+const maisLidos = artigos.slice(0, 5);
+
+const ASSUNTOS = [
+  { valor: 'conexao-whatsapp', label: 'Problema na conexão do WhatsApp' },
+  { valor: 'envio-mensagem', label: 'Mensagem não enviada ou não recebida' },
+  { valor: 'acesso', label: 'Não consigo entrar na minha conta' },
+  { valor: 'billing', label: 'Plano, cobrança ou nota fiscal' },
+  { valor: 'bug', label: 'Algo não está funcionando como deveria' },
+  { valor: 'duvida-uso', label: 'Dúvida de como usar a plataforma' },
+  { valor: 'outro', label: 'Outro assunto' },
+];
+---
+
+<Base
+  title="Suporte — Voe"
+  description="Fale com o suporte da Voe. Atendimento por WhatsApp com o contexto da sua conta."
+  canonical="https://voeops.com/suporte/"
+>
+  <Header />
+
+  <section class="sup-hero">
+    <div class="container">
+      <div class="eyebrow eyebrow--turquesa" data-animate="fade-up">Suporte</div>
+      <h1 class="sup-titulo" data-animate="fade-up" data-delay="0.1">
+        Fale com <em>a gente</em>
+      </h1>
+      <p class="sup-sub" data-animate="fade-up" data-delay="0.2">
+        {HORARIO}. {SLA}.
+      </p>
+    </div>
+  </section>
+
+  <section class="sup-section">
+    <div class="container sup-grid">
+
+      <!-- Coluna principal: formulário -->
+      <div class="sup-form-col">
+        <div class="sup-card">
+          <h2 class="sup-card-titulo">Conte o que aconteceu</h2>
+          <p class="sup-card-sub">
+            Quanto mais específico, mais rápido a gente resolve.
+          </p>
+
+          <form id="sup-form" novalidate>
+            <div class="form-group">
+              <label for="sup-nome">Seu nome</label>
+              <input class="form-input" type="text" id="sup-nome" name="nome" required autocomplete="name" />
+            </div>
+
+            <div class="form-group">
+              <label for="sup-email">E-mail da sua conta Voe</label>
+              <input class="form-input" type="email" id="sup-email" name="email" required autocomplete="email" />
+              <small class="sup-hint">É por ele que localizamos sua conta.</small>
+            </div>
+
+            <div class="form-group">
+              <label for="sup-assunto">Qual o assunto?</label>
+              <select class="form-input" id="sup-assunto" name="assunto" required>
+                <option value="">Selecione…</option>
+                {ASSUNTOS.map((a) => (
+                  <option value={a.valor}>{a.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="sup-descricao">O que está acontecendo?</label>
+              <textarea
+                class="form-input"
+                id="sup-descricao"
+                name="descricao"
+                rows="5"
+                required
+                placeholder="Descreva o problema. Se puder, diga o que você estava fazendo quando aconteceu."
+              ></textarea>
+            </div>
+
+            <p class="sup-erro" id="sup-erro" hidden></p>
+
+            <button type="submit" class="btn btn-primary btn-lg sup-submit">
+              Abrir conversa no WhatsApp
+            </button>
+
+            <p class="sup-nota">
+              Ao enviar, abrimos o WhatsApp com sua mensagem já escrita. Você
+              confirma o envio por lá.
+            </p>
+          </form>
+        </div>
+
+        <div class="sup-alternativo">
+          Prefere e-mail? Escreva para
+          <a href={`mailto:${EMAIL_SUPORTE}`}>{EMAIL_SUPORTE}</a>.
+        </div>
+      </div>
+
+      <!-- Coluna lateral: deflexão -->
+      <aside class="sup-aside">
+        <div class="sup-card sup-card--sutil">
+          <h2 class="sup-aside-titulo">Talvez resolva agora</h2>
+          <p class="sup-aside-sub">
+            Boa parte das dúvidas já tem resposta pronta na Central.
+          </p>
+          {maisLidos.length > 0 ? (
+            <ul class="sup-links">
+              {maisLidos.map((artigo) => (
+                <li><a href={urlDoArtigo(artigo)}>{artigo.data.titulo}</a></li>
+              ))}
+            </ul>
+          ) : (
+            <p class="sup-aside-sub">Central em construção.</p>
+          )}
+          <a href="/ajuda" class="sup-aside-link">Ver a Central de Ajuda →</a>
+        </div>
+
+        <div class="sup-card sup-card--sutil">
+          <h2 class="sup-aside-titulo">Não consegue entrar?</h2>
+          <p class="sup-aside-sub">
+            Se o problema é acesso, escolha <strong>"Não consigo entrar na minha
+            conta"</strong> no formulário e informe o e-mail cadastrado. Não
+            precisa estar logado para pedir ajuda.
+          </p>
+        </div>
+      </aside>
+
+    </div>
+  </section>
+
+  <Footer />
+
+  <script is:inline define:vars={{ WHATSAPP_SUPORTE, ASSUNTOS }}>
+    (function () {
+      const form = document.getElementById('sup-form');
+      const erro = document.getElementById('sup-erro');
+      if (!form) return;
+
+      const rotulo = (valor) => {
+        const achado = ASSUNTOS.find((a) => a.valor === valor);
+        return achado ? achado.label : valor;
+      };
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const nome = form.nome.value.trim();
+        const email = form.email.value.trim();
+        const assunto = form.assunto.value;
+        const descricao = form.descricao.value.trim();
+
+        if (!nome || !email || !assunto || !descricao) {
+          erro.textContent = 'Preencha todos os campos para continuar.';
+          erro.hidden = false;
+          return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          erro.textContent = 'Confira o e-mail digitado.';
+          erro.hidden = false;
+          return;
+        }
+        erro.hidden = true;
+
+        // Mensagem estruturada — chega no inbox do Suporte Voe já triada
+        const texto = [
+          '*Novo chamado — Suporte Voe*',
+          '',
+          '*Nome:* ' + nome,
+          '*E-mail:* ' + email,
+          '*Assunto:* ' + rotulo(assunto),
+          '',
+          '*Descrição:*',
+          descricao,
+          '',
+          '_Enviado pelo formulário em voeops.com/suporte_',
+        ].join('\n');
+
+        if (window.dataLayer) {
+          window.dataLayer.push({ event: 'suporte_chamado', assunto: assunto });
+        }
+
+        // Aberto em nova aba. O link NÃO passa pelo interceptor de wa.me do
+        // Base.astro (que abre o widget de vendas) porque não é um <a> clicado.
+        window.open(
+          'https://wa.me/' + WHATSAPP_SUPORTE + '?text=' + encodeURIComponent(texto),
+          '_blank',
+          'noopener'
+        );
+      });
+    })();
+  </script>
+</Base>
+
+<style>
+  .sup-hero { padding: 140px 0 32px; text-align: center; }
+
+  .sup-titulo {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4.5vw, 3rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: var(--space-sm);
+  }
+
+  .sup-titulo em {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--turquesa);
+  }
+
+  .sup-sub { color: var(--text-secondary); font-size: 1.05rem; }
+
+  .sup-section { padding: var(--space-xl) 0 var(--space-4xl); }
+
+  .sup-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: var(--space-2xl);
+    align-items: start;
+  }
+
+  .sup-card {
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-2xl);
+  }
+
+  .sup-card--sutil {
+    background: var(--bg-secondary);
+    padding: var(--space-xl);
+  }
+
+  .sup-card + .sup-card { margin-top: var(--space-lg); }
+
+  .sup-card-titulo {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .sup-card-sub {
+    color: var(--text-secondary);
+    font-size: 0.925rem;
+    margin-bottom: var(--space-xl);
+  }
+
+  .sup-form-col :global(.form-group) { margin-bottom: var(--space-lg); }
+
+  .sup-form-col label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .sup-form-col textarea.form-input {
+    resize: vertical;
+    min-height: 120px;
+    font-family: var(--font-body);
+  }
+
+  .sup-form-col select.form-input {
+    font-family: var(--font-body);
+    cursor: pointer;
+  }
+
+  .sup-hint {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .sup-erro {
+    padding: 10px 14px;
+    margin-bottom: var(--space-md);
+    font-size: 0.875rem;
+    color: var(--terracotta);
+    background: var(--terracotta-10);
+    border-radius: var(--radius-sm);
+  }
+
+  .sup-submit { width: 100%; justify-content: center; }
+
+  .sup-nota {
+    margin-top: var(--space-md);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .sup-alternativo {
+    margin-top: var(--space-lg);
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+
+  .sup-alternativo a { color: var(--turquesa); }
+
+  .sup-aside-titulo {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .sup-aside-sub {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    margin-bottom: var(--space-md);
+  }
+
+  .sup-links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: var(--space-md);
+  }
+
+  .sup-links a {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    line-height: 1.45;
+  }
+
+  .sup-links a:hover { color: var(--turquesa); }
+
+  .sup-aside-link {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--turquesa);
+    text-decoration: none;
+  }
+
+  @media (max-width: 900px) {
+    .sup-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 768px) {
+    .sup-hero { padding: 120px 0 24px; }
+    .sup-card { padding: var(--space-xl); }
+  }
+</style>

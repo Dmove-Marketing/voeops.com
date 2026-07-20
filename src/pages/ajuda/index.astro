@@ -1,0 +1,451 @@
+﻿---
+// src/pages/ajuda/index.astro
+// Central de Ajuda — índice com busca e categorias.
+import Base from '../../layouts/Base.astro';
+import Header from '../../components/ui/Header.astro';
+import Footer from '../../components/ui/Footer.astro';
+import { getArtigos, getArtigosPorCategoria, urlDoArtigo } from '../../lib/ajuda';
+
+const categorias = await getArtigosPorCategoria();
+const artigos = await getArtigos();
+
+// Índice enxuto embutido na página para a busca client-side (sem backend)
+const indiceBusca = artigos.map((a) => ({
+  t: a.data.titulo,
+  d: a.data.descricao,
+  u: urlDoArtigo(a),
+  c: a.data.categoria,
+  s: a.data.sinonimos.join(' '),
+}));
+
+const naoRevisados = artigos.filter((a) => !a.data.revisado).length;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'Central de Ajuda — Voe',
+  description: 'Guias e respostas para usar a Voe.',
+  url: 'https://voeops.com/ajuda/',
+};
+---
+
+<Base
+  title="Central de Ajuda — Voe"
+  description="Guias, tutoriais e respostas para tirar o máximo da Voe: WhatsApp, CRM, campanhas, automações e cobrança."
+  canonical="https://voeops.com/ajuda/"
+  jsonLd={jsonLd}
+>
+  <Header />
+
+  <section class="ajuda-hero">
+    <div class="container">
+      <div class="eyebrow eyebrow--turquesa" data-animate="fade-up">Central de Ajuda</div>
+      <h1 class="ajuda-hero-title" data-animate="fade-up" data-delay="0.1">
+        Como podemos <em>ajudar?</em>
+      </h1>
+      <p class="ajuda-hero-sub" data-animate="fade-up" data-delay="0.2">
+        Respostas diretas para as dúvidas mais comuns de quem usa a Voe.
+      </p>
+
+      <div class="ajuda-search" data-animate="fade-up" data-delay="0.3">
+        <svg class="ajuda-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+        </svg>
+        <input
+          type="search"
+          id="ajuda-busca"
+          class="ajuda-search-input"
+          placeholder="Buscar por assunto, erro ou dúvida..."
+          autocomplete="off"
+          aria-label="Buscar na Central de Ajuda"
+        />
+      </div>
+
+      <div id="ajuda-resultados" class="ajuda-resultados" hidden></div>
+    </div>
+  </section>
+
+  <section class="ajuda-section" id="ajuda-categorias">
+    <div class="container">
+      {naoRevisados > 0 && (
+        <div class="ajuda-aviso-dev">
+          <strong>Ambiente de desenvolvimento.</strong>
+          {naoRevisados} artigo{naoRevisados > 1 ? 's' : ''} ainda
+          {naoRevisados > 1 ? ' aguardam' : ' aguarda'} revisão factual e
+          <strong> não será publicado</strong> em produção enquanto
+          <code>revisado: false</code>.
+        </div>
+      )}
+
+      {categorias.length === 0 && (
+        <p class="ajuda-vazio">Nenhum artigo publicado ainda.</p>
+      )}
+
+      <div class="ajuda-grid">
+        {categorias.map((cat) => (
+          <article class="ajuda-card" data-animate="fade-up">
+            <h2 class="ajuda-card-titulo">
+              <a href={`/ajuda/${cat.id}`}>{cat.nome}</a>
+            </h2>
+            <p class="ajuda-card-desc">{cat.descricao}</p>
+            <ul class="ajuda-card-lista">
+              {cat.artigos.slice(0, 4).map((artigo) => (
+                <li>
+                  <a href={urlDoArtigo(artigo)}>{artigo.data.titulo}</a>
+                </li>
+              ))}
+            </ul>
+            {cat.artigos.length > 4 && (
+              <a class="ajuda-card-mais" href={`/ajuda/${cat.id}`}>
+                Ver todos os {cat.artigos.length} artigos →
+              </a>
+            )}
+          </article>
+        ))}
+      </div>
+
+      <div class="ajuda-cta">
+        <h2 class="ajuda-cta-titulo">Não encontrou o que precisava?</h2>
+        <p class="ajuda-cta-sub">
+          Fale com a gente. Respondemos com o contexto da sua conta em mãos.
+        </p>
+        <a href="/suporte" class="btn btn-primary btn-lg">Falar com o suporte</a>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+
+  <script is:inline define:vars={{ indiceBusca }}>
+    (function () {
+      const input = document.getElementById('ajuda-busca');
+      const box = document.getElementById('ajuda-resultados');
+      const cats = document.getElementById('ajuda-categorias');
+      if (!input || !box) return;
+
+      const normalizar = (s) =>
+        (s || '')
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '');
+
+      const itens = indiceBusca.map((a) => ({
+        ...a,
+        _busca: normalizar(a.t + ' ' + a.d + ' ' + a.s + ' ' + a.c),
+      }));
+
+      function buscar(termo) {
+        const t = normalizar(termo).trim();
+        if (t.length < 2) return [];
+        const termos = t.split(/\s+/);
+        return itens
+          .map((item) => {
+            let score = 0;
+            for (const p of termos) {
+              if (!item._busca.includes(p)) return null;
+              if (normalizar(item.t).includes(p)) score += 2;
+              score += 1;
+            }
+            return { item, score };
+          })
+          .filter(Boolean)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 8)
+          .map((r) => r.item);
+      }
+
+      function escapar(s) {
+        return String(s).replace(/[&<>"']/g, (c) => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+        })[c]);
+      }
+
+      function render(resultados, termo) {
+        if (!termo || termo.trim().length < 2) {
+          box.hidden = true;
+          if (cats) cats.style.display = '';
+          return;
+        }
+        box.hidden = false;
+        if (cats) cats.style.display = 'none';
+
+        if (resultados.length === 0) {
+          box.innerHTML =
+            '<p class="ajuda-sem-resultado">Nada encontrado para <strong>' +
+            escapar(termo) +
+            '</strong>.<br><a href="/suporte">Fale com o suporte</a> que a gente te ajuda.</p>';
+          return;
+        }
+
+        box.innerHTML =
+          '<ul class="ajuda-resultado-lista">' +
+          resultados
+            .map(
+              (r) =>
+                '<li><a href="' + r.u + '"><span class="ajuda-resultado-titulo">' +
+                escapar(r.t) + '</span><span class="ajuda-resultado-desc">' +
+                escapar(r.d) + '</span></a></li>'
+            )
+            .join('') +
+          '</ul>';
+      }
+
+      let timer;
+      input.addEventListener('input', function () {
+        clearTimeout(timer);
+        const termo = input.value;
+        timer = setTimeout(() => render(buscar(termo), termo), 120);
+      });
+
+      // Permite chegar já buscando: /ajuda?q=whatsapp
+      const q = new URLSearchParams(location.search).get('q');
+      if (q) {
+        input.value = q;
+        render(buscar(q), q);
+      }
+    })();
+  </script>
+</Base>
+
+<style>
+  .ajuda-hero {
+    padding: 140px 0 48px;
+    text-align: center;
+  }
+
+  .ajuda-hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: var(--space-md);
+  }
+
+  .ajuda-hero-title em {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--turquesa);
+  }
+
+  .ajuda-hero-sub {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    max-width: 560px;
+    margin: 0 auto var(--space-2xl);
+  }
+
+  /* === Busca === */
+  .ajuda-search {
+    position: relative;
+    max-width: 620px;
+    margin: 0 auto;
+  }
+
+  .ajuda-search-icon {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  .ajuda-search-input {
+    width: 100%;
+    padding: 18px 20px 18px 52px;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: var(--text-primary);
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-full);
+    box-shadow: var(--shadow-md);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .ajuda-search-input:focus {
+    outline: none;
+    border-color: var(--turquesa);
+    box-shadow: var(--shadow-md), 0 0 0 4px var(--turquesa-15);
+  }
+
+  .ajuda-search-input::placeholder { color: var(--text-muted); }
+  .ajuda-search-input::-webkit-search-cancel-button { cursor: pointer; }
+
+  /* === Resultados === */
+  .ajuda-resultados {
+    max-width: 620px;
+    margin: var(--space-lg) auto 0;
+    text-align: left;
+  }
+
+  .ajuda-resultado-lista {
+    list-style: none;
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+  }
+
+  .ajuda-resultado-lista li + li { border-top: 1px solid var(--glass-border); }
+
+  .ajuda-resultado-lista a {
+    display: block;
+    padding: 16px 20px;
+    text-decoration: none;
+    transition: background 0.15s ease;
+  }
+
+  .ajuda-resultado-lista a:hover { background: var(--bg-secondary); }
+
+  .ajuda-resultado-titulo {
+    display: block;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+
+  .ajuda-resultado-desc {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .ajuda-sem-resultado {
+    padding: var(--space-xl);
+    text-align: center;
+    color: var(--text-secondary);
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+  }
+
+  .ajuda-sem-resultado a { color: var(--turquesa); font-weight: 500; }
+
+  /* === Categorias === */
+  .ajuda-section { padding: var(--space-2xl) 0 var(--space-4xl); }
+
+  .ajuda-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-lg);
+  }
+
+  .ajuda-card {
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .ajuda-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .ajuda-card-titulo {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .ajuda-card-titulo a {
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .ajuda-card-titulo a:hover { color: var(--turquesa); }
+
+  .ajuda-card-desc {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-md);
+  }
+
+  .ajuda-card-lista {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .ajuda-card-lista a {
+    font-size: 0.925rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    line-height: 1.45;
+    display: block;
+  }
+
+  .ajuda-card-lista a:hover {
+    color: var(--turquesa);
+  }
+
+  .ajuda-card-mais {
+    display: inline-block;
+    margin-top: var(--space-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--turquesa);
+    text-decoration: none;
+  }
+
+  /* === CTA === */
+  .ajuda-cta {
+    margin-top: var(--space-4xl);
+    padding: var(--space-3xl) var(--space-xl);
+    text-align: center;
+    background: var(--gradient-subtle);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+  }
+
+  .ajuda-cta-titulo {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .ajuda-cta-sub {
+    color: var(--text-secondary);
+    margin-bottom: var(--space-lg);
+  }
+
+  .ajuda-vazio {
+    text-align: center;
+    color: var(--text-muted);
+    padding: var(--space-3xl) 0;
+  }
+
+  /* Aviso visível apenas em dev (artigos não revisados) */
+  .ajuda-aviso-dev {
+    margin-bottom: var(--space-xl);
+    padding: 14px 18px;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+    background: var(--terracotta-10);
+    border: 1px dashed var(--terracotta);
+    border-radius: var(--radius-md);
+  }
+
+  .ajuda-aviso-dev code {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+  }
+
+  @media (max-width: 768px) {
+    .ajuda-hero { padding: 120px 0 32px; }
+    .ajuda-grid { grid-template-columns: 1fr; }
+    .ajuda-cta { padding: var(--space-2xl) var(--space-lg); }
+  }
+</style>
