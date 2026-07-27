@@ -5,23 +5,27 @@
 // Existe justamente para o pior chamado possível: "não consigo entrar".
 // Quem não consegue autenticar não tem como pedir ajuda dentro do app.
 //
-// Site estático: o formulário não envia para servidor nenhum. Ele monta uma
-// mensagem estruturada e abre o WhatsApp do suporte já preenchido — que é o
-// canal de atendimento definido (ver docs/plano-suporte.md, decisão "a").
+// Site estático: o formulário em si não roda servidor nenhum aqui — ele
+// envia os dados via fetch() pro backend do app.voeops.com (mesmo suporte
+// nativo usado dentro do app), que localiza a conta pelo e-mail informado e
+// abre o chamado de verdade. Nada disso passa por WhatsApp (ver
+// docs/plano-suporte.md — decisão revista: suporte nativo em vez de decisão "a").
 import Base from '../layouts/Base.astro';
 import Header from '../components/ui/Header.astro';
 import Footer from '../components/ui/Footer.astro';
 import { getArtigos, urlDoArtigo } from '../lib/ajuda';
 
-// Número dedicado do Suporte Voe — (11) 96029-7288.
-// Mantido como número da empresa (não pessoal) para ser transferível quando
-// houver um time de suporte. Ver docs/plano-suporte.md.
-const WHATSAPP_SUPORTE = '5511960297288';
 const EMAIL_SUPORTE = 'contato@voeops.com';
 
 // TODO(bruno): confirmar antes de publicar.
 const HORARIO = 'Segunda a sexta, das 9h às 18h';
 const SLA = 'Respondemos em até 4 horas úteis';
+
+// Backend onde o chamado é de fato criado. Em dev, o Next local; em
+// produção, o app real. Pode ser sobrescrito por env var se precisar.
+const APP_URL =
+  import.meta.env.PUBLIC_APP_URL ||
+  (import.meta.env.DEV ? 'http://localhost:3000' : 'https://app.voeops.com');
 
 const artigos = await getArtigos();
 const maisLidos = artigos.slice(0, 5);
@@ -39,13 +43,19 @@ const ASSUNTOS = [
 
 <Base
   title="Suporte — Voe"
-  description="Fale com o suporte da Voe. Atendimento por WhatsApp com o contexto da sua conta."
+  description="Fale com o suporte da Voe. Abrimos um chamado com o contexto da sua conta em mãos."
   canonical="https://voeops.com/suporte/"
 >
   <Header />
 
   <section class="sup-hero">
     <div class="container">
+      <div class="sup-hero-icone" data-animate="scale-up" aria-hidden="true">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"/>
+          <path d="M21 16v2a4 4 0 0 1-4 4h-5"/>
+        </svg>
+      </div>
       <div class="eyebrow eyebrow--turquesa" data-animate="fade-up">Suporte</div>
       <h1 class="sup-titulo" data-animate="fade-up" data-delay="0.1">
         Fale com <em>a gente</em>
@@ -60,7 +70,7 @@ const ASSUNTOS = [
     <div class="container sup-grid">
 
       <!-- Coluna principal: formulário -->
-      <div class="sup-form-col">
+      <div class="sup-form-col" data-animate="fade-up">
         <div class="sup-card">
           <h2 class="sup-card-titulo">Conte o que aconteceu</h2>
           <p class="sup-card-sub">
@@ -69,18 +79,18 @@ const ASSUNTOS = [
 
           <form id="sup-form" novalidate>
             <div class="form-group">
-              <label for="sup-nome">Seu nome</label>
+              <label for="sup-nome"><svg class="sup-label-icone" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Seu nome</label>
               <input class="form-input" type="text" id="sup-nome" name="nome" required autocomplete="name" />
             </div>
 
             <div class="form-group">
-              <label for="sup-email">E-mail da sua conta Voe</label>
+              <label for="sup-email"><svg class="sup-label-icone" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>E-mail da sua conta Voe</label>
               <input class="form-input" type="email" id="sup-email" name="email" required autocomplete="email" />
               <small class="sup-hint">É por ele que localizamos sua conta.</small>
             </div>
 
             <div class="form-group">
-              <label for="sup-assunto">Qual o assunto?</label>
+              <label for="sup-assunto"><svg class="sup-label-icone" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.24L3 3v6.59a2 2 0 0 0 .59 1.41l9.58 9.58a2 2 0 0 0 2.83 0l4.59-4.59a2 2 0 0 0 0-2.83Z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Qual o assunto?</label>
               <select class="form-input" id="sup-assunto" name="assunto" required>
                 <option value="">Selecione…</option>
                 {ASSUNTOS.map((a) => (
@@ -90,7 +100,7 @@ const ASSUNTOS = [
             </div>
 
             <div class="form-group">
-              <label for="sup-descricao">O que está acontecendo?</label>
+              <label for="sup-descricao"><svg class="sup-label-icone" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>O que está acontecendo?</label>
               <textarea
                 class="form-input"
                 id="sup-descricao"
@@ -101,15 +111,25 @@ const ASSUNTOS = [
               ></textarea>
             </div>
 
+            <div class="sup-reasseguro">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
+              <span>Assim que localizarmos sua conta, o time já recebe o chamado com o contexto dela (plano, workspace) em mãos — sem "me manda print".</span>
+            </div>
+
             <p class="sup-erro" id="sup-erro" hidden></p>
 
             <button type="submit" class="btn btn-primary btn-lg sup-submit">
-              Abrir conversa no WhatsApp
+              <span class="btn-text">Abrir chamado</span>
+              <span class="btn-loading" style="display:none;">
+                <svg class="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                </svg>
+                Enviando...
+              </span>
             </button>
 
             <p class="sup-nota">
-              Ao enviar, abrimos o WhatsApp com sua mensagem já escrita. Você
-              confirma o envio por lá.
+              Abrimos um chamado direto com o nosso time. {SLA}.
             </p>
           </form>
         </div>
@@ -121,31 +141,32 @@ const ASSUNTOS = [
       </div>
 
       <!-- Coluna lateral: deflexão -->
-      <aside class="sup-aside">
+      <aside class="sup-aside" data-animate="fade-up" data-delay="0.1">
         <div class="sup-card sup-card--sutil">
-          <h2 class="sup-aside-titulo">Talvez resolva agora</h2>
+          <div class="sup-aside-header">
+            <span class="sup-aside-icone sup-aside-icone--turquesa">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M15 2A6 6 0 0 0 6 8c0 3.5 2 4.5 3 6h6c1-1.5 3-2.5 3-6a6 6 0 0 0-3-6Z"/></svg>
+            </span>
+            <h2 class="sup-aside-titulo">Talvez resolva agora</h2>
+          </div>
           <p class="sup-aside-sub">
             Boa parte das dúvidas já tem resposta pronta na Central.
           </p>
           {maisLidos.length > 0 ? (
             <ul class="sup-links">
               {maisLidos.map((artigo) => (
-                <li><a href={urlDoArtigo(artigo)}>{artigo.data.titulo}</a></li>
+                <li>
+                  <a href={urlDoArtigo(artigo)}>
+                    <span>{artigo.data.titulo}</span>
+                    <svg class="sup-link-seta" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                  </a>
+                </li>
               ))}
             </ul>
           ) : (
             <p class="sup-aside-sub">Central em construção.</p>
           )}
-          <a href="/ajuda" class="sup-aside-link">Ver a Central de Ajuda →</a>
-        </div>
-
-        <div class="sup-card sup-card--sutil">
-          <h2 class="sup-aside-titulo">Não consegue entrar?</h2>
-          <p class="sup-aside-sub">
-            Se o problema é acesso, escolha <strong>"Não consigo entrar na minha
-            conta"</strong> no formulário e informe o e-mail cadastrado. Não
-            precisa estar logado para pedir ajuda.
-          </p>
+          <a href="/ajuda" class="sup-aside-link">Ver a Central de Ajuda <span>→</span></a>
         </div>
       </aside>
 
@@ -154,18 +175,23 @@ const ASSUNTOS = [
 
   <Footer />
 
-  <script is:inline define:vars={{ WHATSAPP_SUPORTE, ASSUNTOS }}>
+  <script is:inline define:vars={{ APP_URL }}>
     (function () {
       const form = document.getElementById('sup-form');
       const erro = document.getElementById('sup-erro');
       if (!form) return;
 
-      const rotulo = (valor) => {
-        const achado = ASSUNTOS.find((a) => a.valor === valor);
-        return achado ? achado.label : valor;
+      const submitBtn = form.querySelector('.sup-submit');
+      const btnText = form.querySelector('.btn-text');
+      const btnLoading = form.querySelector('.btn-loading');
+
+      const setCarregando = (carregando) => {
+        submitBtn.disabled = carregando;
+        if (btnText) btnText.style.display = carregando ? 'none' : 'inline';
+        if (btnLoading) btnLoading.style.display = carregando ? 'inline-flex' : 'none';
       };
 
-      form.addEventListener('submit', function (e) {
+      form.addEventListener('submit', async function (e) {
         e.preventDefault();
 
         const nome = form.nome.value.trim();
@@ -184,39 +210,78 @@ const ASSUNTOS = [
           return;
         }
         erro.hidden = true;
+        setCarregando(true);
 
-        // Mensagem estruturada — chega no inbox do Suporte Voe já triada
-        const texto = [
-          '*Novo chamado — Suporte Voe*',
-          '',
-          '*Nome:* ' + nome,
-          '*E-mail:* ' + email,
-          '*Assunto:* ' + rotulo(assunto),
-          '',
-          '*Descrição:*',
-          descricao,
-          '',
-          '_Enviado pelo formulário em voeops.com/suporte_',
-        ].join('\n');
+        try {
+          const res = await fetch(APP_URL + '/api/public/support-ticket', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome, email, assunto, descricao }),
+          });
+          const json = await res.json().catch(() => ({}));
 
-        if (window.dataLayer) {
-          window.dataLayer.push({ event: 'suporte_chamado', assunto: assunto });
+          if (res.ok && json.ok) {
+            if (window.dataLayer) {
+              window.dataLayer.push({ event: 'suporte_chamado', assunto: assunto });
+            }
+
+            // Salva a referência pro widget de acompanhamento (canto inferior
+            // direito) já aparecer com esse chamado, sem precisar buscar de novo.
+            if (json.ticketId) {
+              try {
+                localStorage.setItem(
+                  'voe_sup_status_ticket',
+                  JSON.stringify({ ticketId: json.ticketId, email: email }),
+                );
+              } catch (e) { /* ignora */ }
+              window.dispatchEvent(new CustomEvent('voe:chamado-aberto'));
+            }
+
+            form.innerHTML =
+              '<div class="sup-sucesso">' +
+                '<div class="sup-sucesso-icone">' +
+                  '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>' +
+                '</div>' +
+                '<p class="sup-sucesso-titulo">Chamado aberto!</p>' +
+                '<p class="sup-sucesso-texto">Acompanhe a resposta por aqui mesmo, pelo balão de suporte no canto da tela — ou quando você entrar na Voe, a conversa já vai estar te esperando lá.</p>' +
+              '</div>';
+            return;
+          }
+
+          if (res.status === 404 && json.error === 'conta_nao_encontrada') {
+            erro.textContent = 'Não encontramos uma conta com esse e-mail. Confira se digitou certo, ou escreva para contato@voeops.com.';
+          } else if (res.status === 409 && json.error === 'tema_duplicado') {
+            erro.textContent = 'Você já tem um chamado em aberto sobre esse assunto — acompanhe pelo balão de suporte no canto da tela, ou escolha "Outro assunto" para abrir um novo.';
+          } else {
+            erro.textContent = 'Não foi possível abrir o chamado agora. Tente novamente ou escreva para contato@voeops.com.';
+          }
+          erro.hidden = false;
+          setCarregando(false);
+        } catch (err) {
+          erro.textContent = 'Falha de conexão. Tente novamente.';
+          erro.hidden = false;
+          setCarregando(false);
         }
-
-        // Aberto em nova aba. O link NÃO passa pelo interceptor de wa.me do
-        // Base.astro (que abre o widget de vendas) porque não é um <a> clicado.
-        window.open(
-          'https://wa.me/' + WHATSAPP_SUPORTE + '?text=' + encodeURIComponent(texto),
-          '_blank',
-          'noopener'
-        );
       });
     })();
   </script>
 </Base>
 
-<style>
-  .sup-hero { padding: 140px 0 32px; text-align: center; }
+<style is:global>
+  .sup-hero { padding: 140px 0 40px; text-align: center; }
+
+  .sup-hero-icone {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto var(--space-md);
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-glow);
+  }
 
   .sup-titulo {
     font-family: var(--font-display);
@@ -250,7 +315,10 @@ const ASSUNTOS = [
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     padding: var(--space-2xl);
+    transition: box-shadow 0.3s ease;
   }
+
+  .sup-form-col .sup-card:hover { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06); }
 
   .sup-card--sutil {
     background: var(--bg-secondary);
@@ -271,15 +339,37 @@ const ASSUNTOS = [
     margin-bottom: var(--space-xl);
   }
 
-  .sup-form-col :global(.form-group) { margin-bottom: var(--space-lg); }
+  .sup-aside-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .sup-aside-icone {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sup-aside-icone--turquesa { background: var(--turquesa-10); color: var(--turquesa); }
+
+  .sup-form-col .form-group { margin-bottom: var(--space-lg); }
 
   .sup-form-col label {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 6px;
     margin-bottom: 6px;
     font-size: 0.9rem;
     font-weight: 500;
     color: var(--text-primary);
   }
+
+  .sup-label-icone { color: var(--turquesa); flex-shrink: 0; }
 
   .sup-form-col textarea.form-input {
     resize: vertical;
@@ -292,12 +382,35 @@ const ASSUNTOS = [
     cursor: pointer;
   }
 
+  .sup-form-col .form-input {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .sup-form-col .form-input:focus {
+    border-color: var(--turquesa);
+    box-shadow: 0 0 0 3px var(--turquesa-10);
+    outline: none;
+  }
+
   .sup-hint {
     display: block;
     margin-top: 5px;
     font-size: 0.8rem;
     color: var(--text-muted);
   }
+
+  .sup-reasseguro {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    margin-bottom: var(--space-lg);
+    border-radius: var(--radius-sm);
+    background: var(--turquesa-10);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+  .sup-reasseguro svg { color: var(--turquesa); flex-shrink: 0; margin-top: 1px; }
 
   .sup-erro {
     padding: 10px 14px;
@@ -309,6 +422,61 @@ const ASSUNTOS = [
   }
 
   .sup-submit { width: 100%; justify-content: center; }
+
+  .sup-submit:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  .btn-loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .spinner { animation: spin 1s linear infinite; }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .sup-sucesso {
+    text-align: center;
+    padding: var(--space-xl) 0;
+  }
+
+  .sup-sucesso-icone {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-md);
+    background: var(--gradient-primary);
+    border-radius: 50%;
+    color: white;
+    box-shadow: var(--shadow-glow);
+    animation: sup-badge-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes sup-badge-in {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .sup-sucesso-titulo {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+
+  .sup-sucesso-texto {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
 
   .sup-nota {
     margin-top: var(--space-md);
@@ -330,7 +498,6 @@ const ASSUNTOS = [
   .sup-aside-titulo {
     font-size: 1rem;
     font-weight: 600;
-    margin-bottom: 6px;
   }
 
   .sup-aside-sub {
@@ -344,25 +511,52 @@ const ASSUNTOS = [
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 2px;
     margin-bottom: var(--space-md);
   }
 
   .sup-links a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 8px;
+    margin: 0 -8px;
+    border-radius: var(--radius-sm);
     font-size: 0.9rem;
     color: var(--text-secondary);
     text-decoration: none;
     line-height: 1.45;
+    transition: background 0.15s ease, color 0.15s ease;
   }
 
-  .sup-links a:hover { color: var(--turquesa); }
+  .sup-link-seta {
+    flex-shrink: 0;
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  .sup-links a:hover {
+    color: var(--turquesa);
+    background: var(--turquesa-10);
+  }
+  .sup-links a:hover .sup-link-seta {
+    opacity: 1;
+    transform: translateX(0);
+  }
 
   .sup-aside-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     font-size: 0.875rem;
     font-weight: 500;
     color: var(--turquesa);
     text-decoration: none;
   }
+  .sup-aside-link span { transition: transform 0.15s ease; }
+  .sup-aside-link:hover span { transform: translateX(3px); }
 
   @media (max-width: 900px) {
     .sup-grid { grid-template-columns: 1fr; }

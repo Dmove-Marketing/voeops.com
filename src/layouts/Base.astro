@@ -6,6 +6,7 @@ import GTMBody from '../components/tracking/GTMBody.astro';
 import UTMCapture from '../components/tracking/UTMCapture.astro';
 import ParticleNetwork from '../components/ui/ParticleNetwork.astro';
 import CookieConsent from '../components/ui/CookieConsent.astro';
+import SupportStatusWidget from '../components/ui/SupportStatusWidget.astro';
 
 interface Props {
   title: string;
@@ -91,6 +92,9 @@ const defaultJsonLd = {
     <!-- Aviso de cookies (LGPD) — aponta para a Política de Privacidade -->
     <CookieConsent learnMoreUrl="https://voeops.com/politica-de-privacidade/" learnMoreText="Política de Privacidade" />
 
+    <!-- Acompanhamento do chamado sem login — só aparece pra quem já abriu um -->
+    <SupportStatusWidget />
+
     <!-- Voe widget -->
     <script src="https://widget.voeops.com/w.js" data-voe="2e36936a3863509a24940c09cf14f760" async></script>
 
@@ -115,6 +119,7 @@ const defaultJsonLd = {
           el.addEventListener('click', function () {
             if (skipToggle) { skipToggle = false; return; }
             widgetOpen = !widgetOpen;
+            if (widgetOpen) window.dispatchEvent(new CustomEvent('voe:sales-widget-open'));
           });
         }
 
@@ -140,6 +145,7 @@ const defaultJsonLd = {
             widgetOpen = true;
             skipToggle = true;
             launcher.click();
+            window.dispatchEvent(new CustomEvent('voe:sales-widget-open'));
           }
         });
 
@@ -192,11 +198,24 @@ const defaultJsonLd = {
             widgetOpen = true;
             skipToggle = true;
             launcher.click();
+            window.dispatchEvent(new CustomEvent('voe:sales-widget-open'));
             return;
           }
           // Widget ainda carregando — agenda abertura para quando estiver pronto
           pendingOpen = true;
         }
+
+        // Um widget não pode ficar aberto em cima do outro: quando o de
+        // suporte abre (SupportStatusWidget), fecha o de vendas se estiver
+        // aberto.
+        window.addEventListener('voe:support-widget-open', function () {
+          if (!launcher) launcher = findFab();
+          if (launcher && widgetOpen) {
+            widgetOpen = false;
+            skipToggle = true;
+            launcher.click();
+          }
+        });
 
         // Abre ao rolar a página > 150px (somente na home)
         if (isHome) {
