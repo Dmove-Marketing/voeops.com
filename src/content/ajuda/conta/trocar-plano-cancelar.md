@@ -6,7 +6,7 @@ rotas: ["/account", "/settings"]
 sinonimos: ["upgrade", "downgrade", "cancelar", "assinatura", "cartao", "fatura", "nota fiscal", "boleto"]
 ordem: 3
 atualizado: 2026-07-20
-revisado: false
+revisado: true
 ---
 
 Tudo relacionado a plano e pagamento fica em **Minha conta**.
@@ -50,7 +50,9 @@ O que acontece depois:
 - **Não consigo fazer downgrade** — você provavelmente excede algum limite do
   plano menor. Reduza usuários ou canais primeiro.
 - **Preciso da nota fiscal** — as faturas ficam disponíveis no portal de cobrança.
-- **Não vejo a opção de plano** — só o Proprietário da conta acessa essa área.
+- **Não vejo a opção de plano** — por padrão, só o **Proprietário** da conta
+  acessa plano e faturas. Ele pode conceder essa permissão a outra pessoa nas
+  configurações de usuários.
 
 ---
 

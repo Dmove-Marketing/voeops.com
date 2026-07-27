@@ -6,7 +6,7 @@ rotas: ["/agents", "/settings", "/inbox"]
 sinonimos: ["ia", "agente", "sdr", "robo", "atendimento automatico", "inteligencia artificial", "bot"]
 ordem: 1
 atualizado: 2026-07-20
-revisado: false
+revisado: true
 ---
 
 O agente de IA da Voe responde seus contatos automaticamente no WhatsApp,
@@ -59,8 +59,11 @@ exatamente por isso que se começa pequeno.
 
 ## Consumo
 
-O agente consome tokens do seu plano. Conversa longa consome mais.
-Acompanhe em **Minha conta** e veja
+O agente consome **tokens de IA** do seu plano — conversa longa consome mais. O
+plano inclui uma cota mensal de tokens, que renova a cada ciclo; se precisar de
+mais, dá para comprar pacotes de créditos avulsos, que não expiram.
+
+Acompanhe o saldo e o consumo em **Configurações → Créditos VOE AI**. Veja também
 [Entendendo seu plano e limites](/ajuda/conta/entender-plano-limites).
 
 ## Não funcionou?

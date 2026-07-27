@@ -6,7 +6,7 @@ rotas: ["/settings", "/inbox", "/onboarding"]
 sinonimos: ["conectar whatsapp", "ligar whatsapp", "adicionar numero", "qr code", "primeira conexao"]
 ordem: 1
 atualizado: 2026-07-20
-revisado: false
+revisado: true
 ---
 
 Conectar seu WhatsApp é o primeiro passo para usar a Voe. Depois disso, todas as
@@ -32,9 +32,10 @@ Você verá as opções de conexão disponíveis:
 
 ## Conectando pela WhatsApp Api Voe
 
-1. Em **Configurações → Canais**, escolha **WhatsApp Api Voe**
-2. Clique em **Adicionar canal**
-3. Dê um nome ao canal (ex: `Comercial`) e informe o número
+1. Em **Configurações → Canais**, na seção **WhatsApp Api Voe**, clique em
+   **Adicionar Api Voe**
+2. No cadastro que abre, dê um nome ao canal (ex: `Comercial`) e informe o número
+3. Clique em **Adicionar canal**
 4. Um **QR Code** aparece na tela
 5. No celular, abra o WhatsApp → **Aparelhos conectados** → **Conectar aparelho**
 6. Aponte a câmera para o QR Code da tela

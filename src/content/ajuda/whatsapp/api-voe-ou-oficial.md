@@ -6,7 +6,7 @@ rotas: ["/settings", "/onboarding"]
 sinonimos: ["diferenca", "qual escolher", "api oficial", "cloud api", "meta", "tipo de conexao"]
 ordem: 4
 atualizado: 2026-07-20
-revisado: false
+revisado: true
 ---
 
 A Voe oferece dois jeitos de conectar seu WhatsApp. Os dois funcionam bem — a

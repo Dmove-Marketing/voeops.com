@@ -6,7 +6,7 @@ rotas: ["/inbox", "/settings", "/dashboard"]
 sinonimos: ["desconectou", "caiu", "offline", "parou de receber", "nao chega mensagem", "reconectar"]
 ordem: 2
 atualizado: 2026-07-20
-revisado: false
+revisado: true
 ---
 
 Se o canal aparece como **desconectado**, a Voe deixa de enviar e receber

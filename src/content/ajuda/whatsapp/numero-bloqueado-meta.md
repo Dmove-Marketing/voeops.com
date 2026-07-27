@@ -6,7 +6,7 @@ rotas: ["/inbox", "/settings", "/campaigns"]
 sinonimos: ["banido", "bloqueado", "banimento", "numero suspenso", "conta restrita"]
 ordem: 5
 atualizado: 2026-07-20
-revisado: false
+revisado: true
 ---
 
 O bloqueio é aplicado pela **Meta**, dona do WhatsApp — não pela Voe. Por isso a

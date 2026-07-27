@@ -6,7 +6,7 @@ rotas: ["/onboarding", "/dashboard"]
 sinonimos: ["comecar", "primeiro acesso", "primeiro login", "configuracao inicial", "onboarding"]
 ordem: 1
 atualizado: 2026-07-20
-revisado: false
+revisado: true
 ---
 
 Você não precisa configurar tudo antes de usar a Voe. Faça estes três passos e

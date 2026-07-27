@@ -6,7 +6,7 @@ rotas: ["/account", "/settings"]
 sinonimos: ["plano", "limite", "cota", "consumo", "quanto posso usar", "mensagens restantes"]
 ordem: 1
 atualizado: 2026-07-20
-revisado: false
+revisado: true
 ---
 
 Seu plano define até onde você pode ir em cada recurso da Voe. Existem dois tipos
@@ -14,17 +14,32 @@ de limite, e a diferença importa.
 
 ## Cotas (renovam todo mês)
 
-São consumos que **zeram no início de cada mês**. Por exemplo: mensagens
-enviadas, disparos de campanha, uso dos agentes de IA.
+São consumos que **zeram na virada do ciclo**: os **disparos de campanha pelo
+WhatsApp**, os **envios de e-mail** e os **tokens de IA** (usados pelos agentes).
 
-Se você chegou ao teto no dia 28, no dia 1º volta ao normal.
+Se você chegou ao teto no dia 28, na renovação do ciclo volta ao normal.
+
+> Atenção: responder um cliente no inbox **não** consome cota. Quem tem limite
+> mensal é o disparo em massa (Campanhas), o e-mail e a IA.
 
 ## Limites fixos (não renovam)
 
-São tetos de estrutura, que valem enquanto você estiver no plano. Por exemplo:
-número de usuários, canais de WhatsApp conectados.
+São tetos de estrutura, que valem enquanto você estiver no plano: **número de
+usuários**, **canais de WhatsApp conectados** e **armazenamento**.
 
-Chegar nesse teto não é questão de esperar o mês virar — só muda com upgrade.
+Chegar nesse teto não é questão de esperar o mês virar — só muda com upgrade
+(ou, no caso do armazenamento, liberando espaço).
+
+## Agentes de IA
+
+Aqui são duas coisas diferentes:
+
+- **Acesso** ao agente (como o SDR) é liberado pelo plano — ou está incluído, ou
+  não. [Veja o que cada plano inclui](/ajuda/conta/trocar-plano-cancelar).
+- **Consumo de tokens**: cada plano inclui uma cota mensal de tokens de IA, que
+  renova no ciclo. Precisando de mais, dá para comprar pacotes de créditos
+  avulsos, que não expiram. Acompanhe o saldo em
+  **Configurações → Créditos VOE AI**.
 
 ## Onde acompanhar
 

@@ -6,7 +6,7 @@ rotas: ["/settings", "/account", "/profile"]
 sinonimos: ["convidar", "usuarios", "equipe", "permissoes", "acesso", "adicionar pessoa", "vendedor"]
 ordem: 3
 atualizado: 2026-07-20
-revisado: false
+revisado: true
 ---
 
 A Voe foi feita para o time inteiro atender do mesmo lugar. Cada pessoa tem o
@@ -25,7 +25,7 @@ Proprietário para quem responde pela conta.
 
 ## Como convidar
 
-1. Vá em **Configurações → Usuários**
+1. Vá em **Minha conta → Gerenciar usuários**
 2. Clique em **Convidar**
 3. Informe o e-mail e escolha o nível de acesso
 4. Envie

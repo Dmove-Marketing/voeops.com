@@ -6,7 +6,7 @@ rotas: ["/account", "/campaigns", "/inbox"]
 sinonimos: ["limite atingido", "bloqueado", "cota esgotada", "nao consigo enviar", "estourei"]
 ordem: 2
 atualizado: 2026-07-20
-revisado: false
+revisado: true
 ---
 
 Chegar ao limite **não derruba sua operação inteira**. O bloqueio é pontual: só o
@@ -20,8 +20,9 @@ recurso que estourou para.
 
 ## O que fica bloqueado
 
-Apenas o recurso específico que atingiu o teto. Se foi a cota de mensagens, você
-para de enviar — mas continua recebendo.
+Apenas o recurso específico que atingiu o teto. Se foi a cota de **disparos de
+campanha**, você para de disparar campanhas — mas continua recebendo e
+respondendo no inbox normalmente.
 
 ## Como voltar a operar
 

@@ -6,7 +6,7 @@ rotas: ["/campaigns", "/audiences", "/segments", "/templates"]
 sinonimos: ["campanha", "disparo", "envio em massa", "audiencia", "lista de transmissao", "marketing"]
 ordem: 1
 atualizado: 2026-07-20
-revisado: false
+revisado: true
 ---
 
 Campanha é o envio de uma mensagem para um grupo de contatos de uma vez. É

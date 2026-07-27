@@ -6,7 +6,7 @@ rotas: ["/inbox", "/campaigns"]
 sinonimos: ["nao enviou", "falha no envio", "erro ao enviar", "mensagem travada", "nao entregue"]
 ordem: 3
 atualizado: 2026-07-20
-revisado: false
+revisado: true
 ---
 
 Quando uma mensagem não sai, a causa quase sempre é uma destas quatro. Vá na
@@ -38,10 +38,14 @@ Isso é regra da Meta, não da Voe — vale para qualquer plataforma.
 
 > Na conexão **WhatsApp Api Voe** essa limitação não existe.
 
-## 4. Você atingiu o limite do plano
+## 4. Você atingiu o limite de disparos de campanha
 
-Cada plano tem uma cota mensal de mensagens. Ao chegar perto do limite, a Voe
-avisa dentro do app. Veja
+Mensagem normal do inbox (resposta a um cliente) **não tem cota mensal** — essa
+não é a causa de uma resposta que não sai.
+
+O que tem limite por plano é o **disparo em massa via Campanhas** ("Disparos WA
+via Campanhas"). Se o que falhou foi um envio de campanha, pode ser esse limite.
+A Voe mostra o consumo no app antes de você chegar lá. Veja
 [Atingi meu limite — e agora?](/ajuda/conta/atingi-meu-limite).
 
 ## Não funcionou?

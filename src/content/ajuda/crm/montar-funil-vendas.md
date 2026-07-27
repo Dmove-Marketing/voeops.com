@@ -6,7 +6,7 @@ rotas: ["/deals", "/settings", "/inbox"]
 sinonimos: ["funil", "pipeline", "etapas", "kanban", "oportunidades", "processo de vendas"]
 ordem: 1
 atualizado: 2026-07-20
-revisado: false
+revisado: true
 ---
 
 O funil é onde você acompanha cada negócio em andamento. Bem montado, ele

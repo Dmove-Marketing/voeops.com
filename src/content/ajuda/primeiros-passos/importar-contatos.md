@@ -6,7 +6,7 @@ rotas: ["/contacts", "/settings", "/companies"]
 sinonimos: ["importar", "planilha", "csv", "excel", "base de contatos", "migrar contatos"]
 ordem: 2
 atualizado: 2026-07-20
-revisado: false
+revisado: true
 ---
 
 Se você já tem uma base de clientes em planilha, dá para trazer tudo para a Voe

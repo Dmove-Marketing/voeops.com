@@ -6,7 +6,7 @@ rotas: ["/inbox", "/settings"]
 sinonimos: ["historico", "conversas antigas", "sincronizar", "mensagens antigas", "importar conversas"]
 ordem: 6
 atualizado: 2026-07-20
-revisado: false
+revisado: true
 ---
 
 Ao conectar um número, a Voe pode trazer as conversas que já existiam no
@@ -20,12 +20,16 @@ conversas vão aparecendo aos poucos no inbox.
 
 Se você acabou de conectar, aguarde antes de concluir que falhou.
 
-## Confira se a opção estava ativa
+## Peça a sincronização a qualquer momento
 
-O histórico só é sincronizado se a opção **sincronizar histórico** estava marcada
-no momento em que o canal foi criado.
+Você não precisa recriar o canal se o histórico não veio. Com o canal
+**Conectado**, vá em **Configurações → Canais**, abra o canal e clique em
+**Sincronizar** (em "Sincronizar Histórico"). A Voe solicita a sincronização
+completa do histórico de mensagens daquele número.
 
-Para conferir: **Configurações → Canais** → abra o canal.
+> A opção **sincronizar histórico** também pode ser marcada na criação do canal,
+> para já trazer as conversas de cara. Mas, mesmo esquecendo de marcar, o botão
+> **Sincronizar** resolve depois.
 
 ## Por que às vezes vem incompleto
 
@@ -50,8 +54,9 @@ Algumas limitações vêm do próprio WhatsApp, não da Voe:
 
 ## Não funcionou?
 
-- **Não veio absolutamente nada** — confirme que o canal está **Conectado** e que
-  a opção de sincronizar estava marcada. Se não estava, será preciso recriar o canal.
+- **Não veio absolutamente nada** — confirme que o canal está **Conectado** e
+  use o botão **Sincronizar** no canal (em "Sincronizar Histórico"). Se ele
+  estiver desabilitado, é porque o canal ainda não está conectado.
 - **Veio o texto mas não a mídia** — é limitação conhecida do WhatsApp para
   aparelhos conectados. A mídia nova continua funcionando normalmente.
 - **Parou no meio** — verifique se o celular ficou sem internet ou desligou.
