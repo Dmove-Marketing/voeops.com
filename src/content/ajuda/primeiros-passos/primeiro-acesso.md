@@ -5,7 +5,7 @@ categoria: primeiros-passos
 rotas: ["/onboarding", "/dashboard"]
 sinonimos: ["comecar", "primeiro acesso", "primeiro login", "configuracao inicial", "onboarding"]
 ordem: 1
-atualizado: 2026-07-20
+atualizado: 2026-07-29
 revisado: true
 ---
 
@@ -51,8 +51,9 @@ Não faça tudo no primeiro dia. Conforme a necessidade aparecer:
 
 ## Não funcionou?
 
-- **Não encontro Configurações** — só quem é administrador do workspace vê essa
-  área. Peça acesso a quem criou a conta.
+- **Não encontro Configurações** — por padrão só Proprietário e Administrador
+  veem essa área. Peça a um deles para liberar seu acesso, sem precisar virar
+  Administrador (veja [convidando sua equipe](/ajuda/primeiros-passos/convidar-equipe)).
 - **Conectei mas o inbox está vazio** — normal se ninguém te mandou mensagem
   ainda. Mande uma de outro celular para testar.
 - **O QR Code não conecta** — veja

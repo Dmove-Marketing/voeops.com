@@ -132,6 +132,23 @@ const ASSUNTOS = [
               Abrimos um chamado direto com o nosso time. {SLA}.
             </p>
           </form>
+
+          <!-- Conflito: já existe um chamado aberto sobre o mesmo assunto.
+               Fica dentro do mesmo card, no lugar do formulário — sem
+               overlay, sem fundo escurecido, sem cobrir o resto da página. -->
+          <div id="sup-conflito-inline" class="sup-conflito-inline" hidden>
+            <div class="sup-conflito-icone" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"/><path d="M21 16v2a4 4 0 0 1-4 4h-5"/></svg>
+            </div>
+            <h2 class="sup-conflito-titulo">Você já tem um chamado em aberto</h2>
+            <p class="sup-conflito-sub">Sobre "<span id="sup-conflito-assunto"></span>". O que você quer fazer?</p>
+
+            <div class="sup-conflito-acoes">
+              <button type="button" id="sup-conflito-ver" class="btn btn-primary sup-conflito-btn">Ver esse chamado</button>
+              <button type="button" id="sup-conflito-novo" class="sup-conflito-btn sup-conflito-btn--secundario">Criar novo chamado mesmo assim</button>
+              <button type="button" id="sup-conflito-cancelar" class="sup-conflito-btn sup-conflito-btn--texto">Voltar e revisar</button>
+            </div>
+          </div>
         </div>
 
         <div class="sup-alternativo">
@@ -185,13 +202,114 @@ const ASSUNTOS = [
       const btnText = form.querySelector('.btn-text');
       const btnLoading = form.querySelector('.btn-loading');
 
+      const conflito = document.getElementById('sup-conflito-inline');
+      const conflitoAssunto = document.getElementById('sup-conflito-assunto');
+      const conflitoVerBtn = document.getElementById('sup-conflito-ver');
+      const conflitoNovoBtn = document.getElementById('sup-conflito-novo');
+      const conflitoCancelarBtn = document.getElementById('sup-conflito-cancelar');
+
       const setCarregando = (carregando) => {
         submitBtn.disabled = carregando;
         if (btnText) btnText.style.display = carregando ? 'none' : 'inline';
         if (btnLoading) btnLoading.style.display = carregando ? 'inline-flex' : 'none';
       };
 
-      form.addEventListener('submit', async function (e) {
+      function mostrarSucesso() {
+        form.innerHTML =
+          '<div class="sup-sucesso">' +
+            '<div class="sup-sucesso-icone">' +
+              '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>' +
+            '</div>' +
+            '<p class="sup-sucesso-titulo">Chamado aberto!</p>' +
+            '<p class="sup-sucesso-texto">Acompanhe a resposta por aqui mesmo, pelo balão de suporte no canto da tela — ou quando você entrar na Voe, a conversa já vai estar te esperando lá.</p>' +
+          '</div>';
+      }
+
+      // Grava a referência pro widget de acompanhamento (canto inferior
+      // direito) aparecer com esse chamado, e abre o painel dele — sem isso
+      // o cliente não tem como ver a conversa (não existe mais busca por
+      // e-mail no widget).
+      function acompanharChamado(ticketId, email) {
+        try {
+          localStorage.setItem('voe_sup_status_ticket', JSON.stringify({ ticketId, email }));
+        } catch (e) { /* ignora */ }
+        window.dispatchEvent(new CustomEvent('voe:chamado-aberto'));
+      }
+
+      function abrirPainelWidget() {
+        setTimeout(function () {
+          var btn = document.getElementById('voe-sup-status-btn');
+          if (btn && !btn.hidden) btn.click();
+        }, 250);
+      }
+
+      // Sem overlay: o conflito troca de lugar com o formulário dentro do
+      // mesmo card (igual à tela de sucesso) — nunca cobre o resto da
+      // página, então não tem como "travar a tela" nem por engano.
+      function fecharConflito() {
+        if (!conflito) return;
+        conflito.hidden = true;
+        form.hidden = false;
+      }
+
+      function abrirConflito(ticketId, subject, dados) {
+        if (!conflito) return;
+        if (conflitoAssunto) conflitoAssunto.textContent = subject || 'seu chamado';
+        form.hidden = true;
+        conflito.hidden = false;
+
+        conflitoVerBtn.onclick = function () {
+          acompanharChamado(ticketId, dados.email);
+          fecharConflito();
+          abrirPainelWidget();
+        };
+        conflitoNovoBtn.onclick = function () {
+          fecharConflito();
+          enviarChamado(Object.assign({}, dados, { forcar: true }));
+        };
+        conflitoCancelarBtn.onclick = fecharConflito;
+      }
+
+      async function enviarChamado(dados) {
+        erro.hidden = true;
+        setCarregando(true);
+        try {
+          const res = await fetch(APP_URL + '/api/public/support-ticket', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados),
+          });
+          const json = await res.json().catch(() => ({}));
+
+          if (res.ok && json.ok) {
+            if (window.dataLayer) {
+              window.dataLayer.push({ event: 'suporte_chamado', assunto: dados.assunto });
+            }
+            if (json.ticketId) acompanharChamado(json.ticketId, dados.email);
+            mostrarSucesso();
+            return;
+          }
+
+          if (res.status === 404 && json.error === 'conta_nao_encontrada') {
+            erro.textContent = 'Não encontramos uma conta com esse e-mail. Confira se digitou certo, ou escreva para contato@voeops.com.';
+            erro.hidden = false;
+            setCarregando(false);
+          } else if (res.status === 409 && json.error === 'tema_duplicado') {
+            setCarregando(false);
+            abrirConflito(json.ticketId, json.subject, dados);
+          } else {
+            erro.textContent = 'Tivemos um problema por aqui e não conseguimos abrir seu chamado agora. Tente de novo em alguns instantes — se continuar assim, escreva direto para contato@voeops.com que a gente resolve por lá.';
+            erro.hidden = false;
+            setCarregando(false);
+          }
+        } catch (err) {
+          erro.textContent = 'Falha de conexão. Tente novamente.';
+          erro.hidden = false;
+          setCarregando(false);
+        }
+      }
+
+      form.addEventListener('submit', function (e) {
         e.preventDefault();
 
         const nome = form.nome.value.trim();
@@ -209,59 +327,8 @@ const ASSUNTOS = [
           erro.hidden = false;
           return;
         }
-        erro.hidden = true;
-        setCarregando(true);
 
-        try {
-          const res = await fetch(APP_URL + '/api/public/support-ticket', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nome, email, assunto, descricao }),
-          });
-          const json = await res.json().catch(() => ({}));
-
-          if (res.ok && json.ok) {
-            if (window.dataLayer) {
-              window.dataLayer.push({ event: 'suporte_chamado', assunto: assunto });
-            }
-
-            // Salva a referência pro widget de acompanhamento (canto inferior
-            // direito) já aparecer com esse chamado, sem precisar buscar de novo.
-            if (json.ticketId) {
-              try {
-                localStorage.setItem(
-                  'voe_sup_status_ticket',
-                  JSON.stringify({ ticketId: json.ticketId, email: email }),
-                );
-              } catch (e) { /* ignora */ }
-              window.dispatchEvent(new CustomEvent('voe:chamado-aberto'));
-            }
-
-            form.innerHTML =
-              '<div class="sup-sucesso">' +
-                '<div class="sup-sucesso-icone">' +
-                  '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>' +
-                '</div>' +
-                '<p class="sup-sucesso-titulo">Chamado aberto!</p>' +
-                '<p class="sup-sucesso-texto">Acompanhe a resposta por aqui mesmo, pelo balão de suporte no canto da tela — ou quando você entrar na Voe, a conversa já vai estar te esperando lá.</p>' +
-              '</div>';
-            return;
-          }
-
-          if (res.status === 404 && json.error === 'conta_nao_encontrada') {
-            erro.textContent = 'Não encontramos uma conta com esse e-mail. Confira se digitou certo, ou escreva para contato@voeops.com.';
-          } else if (res.status === 409 && json.error === 'tema_duplicado') {
-            erro.textContent = 'Você já tem um chamado em aberto sobre esse assunto — acompanhe pelo balão de suporte no canto da tela, ou escolha "Outro assunto" para abrir um novo.';
-          } else {
-            erro.textContent = 'Não foi possível abrir o chamado agora. Tente novamente ou escreva para contato@voeops.com.';
-          }
-          erro.hidden = false;
-          setCarregando(false);
-        } catch (err) {
-          erro.textContent = 'Falha de conexão. Tente novamente.';
-          erro.hidden = false;
-          setCarregando(false);
-        }
+        enviarChamado({ nome, email, assunto, descricao });
       });
     })();
   </script>
@@ -566,4 +633,78 @@ const ASSUNTOS = [
     .sup-hero { padding: 120px 0 24px; }
     .sup-card { padding: var(--space-xl); }
   }
+
+  /* === Conflito: chamado já aberto sobre o mesmo assunto === */
+  /* [hidden] é do user-agent (prioridade menor que qualquer regra de autor
+     abaixo, mesmo sem !important) — sem isso, o "display: flex" logo depois
+     vence e o overlay fica cobrindo a tela inteira (bloqueando cliques e
+     digitação) mesmo com o atributo hidden presente. */
+  /* Sem position:fixed, sem z-index, sem display na regra base — some com
+     [hidden] normalmente, sem risco de cobrir a página por engano (era
+     exatamente esse o bug do overlay anterior). Troca de lugar com o
+     formulário dentro do mesmo card, como a tela de sucesso já faz. */
+  .sup-conflito-inline {
+    text-align: center;
+    padding: var(--space-sm) 0;
+  }
+
+  .sup-conflito-icone {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto var(--space-md);
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-glow);
+  }
+
+  .sup-conflito-titulo {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .sup-conflito-sub {
+    color: var(--text-secondary);
+    font-size: 0.925rem;
+    line-height: 1.5;
+    margin-bottom: var(--space-xl);
+    word-break: break-word;
+  }
+
+  .sup-conflito-acoes {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .sup-conflito-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 20px;
+    font-family: var(--font-body);
+    font-size: 0.925rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .sup-conflito-btn--secundario {
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+  }
+  .sup-conflito-btn--secundario:hover { border-color: var(--turquesa); color: var(--turquesa); }
+
+  .sup-conflito-btn--texto {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .sup-conflito-btn--texto:hover { color: var(--text-primary); }
 </style>

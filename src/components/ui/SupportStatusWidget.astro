@@ -15,19 +15,19 @@
 // verificam o dono do chamado pelo e-mail (ver rotas em
 // app.voeops.com/src/app/api/public/support-ticket).
 //
-// Botão SEMPRE visível (não só quando há um chamado salvo neste navegador):
-// localStorage não atravessa navegador/dispositivo — só o e-mail atravessa.
-// Por isso o botão precisa estar sempre alcançável, pra quem trocou de
-// navegador (ou usou aba anônima) conseguir clicar e buscar o chamado pelo
-// e-mail. IP não serve pra isso (múltiplos clientes atrás do mesmo IP,
-// operadora móvel troca o IP a todo momento, VPN etc.) — e-mail é o único
-// identificador estável que a pessoa consegue fornecer de cabeça.
+// Botão só aparece quando há um chamado ATIVO (não fechado) salvo neste
+// navegador (localStorage) — ver aplicarVisibilidadeBotao(). Sem chamado
+// salvo, ou com o chamado salvo já fechado, o botão fica escondido: não
+// existe aqui uma tela de "buscar meu chamado por e-mail" nem forma de abrir
+// um chamado novo por este widget — isso é sempre feito pela Central de
+// Ajuda / página /suporte, cujo formulário grava a referência local que faz
+// o botão aparecer (evento voe:chamado-aberto).
 const APP_URL =
   import.meta.env.PUBLIC_APP_URL ||
   (import.meta.env.DEV ? 'http://localhost:3000' : 'https://app.voeops.com');
 ---
 
-<button id="voe-sup-status-btn" class="sup-status-btn" aria-label="Acompanhar meu chamado" title="Acompanhar meu chamado">
+<button id="voe-sup-status-btn" class="sup-status-btn" aria-label="Acompanhar meu chamado" title="Acompanhar meu chamado" hidden>
   <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"/>
     <path d="M21 16v2a4 4 0 0 1-4 4h-5"/>
@@ -71,15 +71,39 @@ const APP_URL =
     // mensagem (o upload acontece na escolha do arquivo, não no envio).
     var anexoPendente = null;
     var anexoEnviando = false;
+    // Preview local (thumbnail) — aparece na hora, sem esperar o upload
+    // terminar, pra quem colou/anexou já ver o que está prestes a mandar.
+    var anexoPreviewUrl = null; // object URL local, só pra imagem
+    var anexoPreviewTipo = null; // 'image' | 'video'
+    var anexoPreviewNome = null;
+    var anexoErro = null; // mensagem de erro exibida no lugar do alert()
+    var anexoErroTimer = null; // some sozinho depois de alguns segundos
+    var anexoAbort = null; // AbortController do upload em andamento
+    var anexoGeracao = 0; // ignora resultado de upload já cancelado/trocado
+
+    var ICON_CLIP =
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>';
+    var ICON_VIDEO =
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>';
+
+    function limparAnexo() {
+      if (anexoAbort) { try { anexoAbort.abort(); } catch (e) {} anexoAbort = null; }
+      if (anexoPreviewUrl) { try { URL.revokeObjectURL(anexoPreviewUrl); } catch (e) {} }
+      if (anexoErroTimer) { clearTimeout(anexoErroTimer); anexoErroTimer = null; }
+      anexoPreviewUrl = null;
+      anexoPreviewTipo = null;
+      anexoPreviewNome = null;
+      anexoPendente = null;
+      anexoEnviando = false;
+      anexoErro = null;
+      anexoGeracao++;
+    }
 
     function salvo() {
       try {
         var raw = localStorage.getItem(STORAGE_KEY);
         return raw ? JSON.parse(raw) : null;
       } catch (e) { return null; }
-    }
-    function salvar(ticketId, email) {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ticketId: ticketId, email: email })); } catch (e) {}
     }
     function limpar() {
       try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
@@ -89,6 +113,13 @@ const APP_URL =
     }
     function obterVisto(ticketId) {
       try { return localStorage.getItem(SEEN_KEY_PREFIX + ticketId); } catch (e) { return null; }
+    }
+
+    // Some assim que o chamado salvo é encerrado — não faz sentido continuar
+    // oferecendo "acompanhar" um chamado que já fechou. Volta a aparecer só
+    // quando o mesmo cliente abrir um chamado novo (voe:chamado-aberto).
+    function aplicarVisibilidadeBotao(status) {
+      btn.hidden = status === 'fechado';
     }
 
     // ── Posicionamento ao lado do widget de vendas ──────────────────────
@@ -138,10 +169,8 @@ const APP_URL =
     window.addEventListener('resize', posicionar);
 
     // ── Suprime o balãozinho de texto do widget de vendas ────────────────
-    // Só quando existe de fato um chamado salvo neste navegador — o botão
-    // de suporte agora fica sempre visível (ver nota no topo do arquivo),
-    // então não é a visibilidade dele que deve suprimir o balão de vendas,
-    // e sim ter ou não uma conversa de suporte em andamento.
+    // Só quando existe de fato um chamado salvo neste navegador — ter ou não
+    // uma conversa de suporte em andamento é o que deve suprimir o balão.
     function suprimirBubbleVendas() {
       var host = document.getElementById('voe-widget-host');
       var bubble = host && host.shadowRoot ? host.shadowRoot.querySelector('.bubble') : null;
@@ -181,42 +210,11 @@ const APP_URL =
       } catch (e) { return ''; }
     }
 
-    function renderBusca(mensagemErro) {
-      anexoPendente = null; // não faz sentido levar o anexo de um chamado pra outro
-      body.innerHTML =
-        '<div class="sup-status-intro-icone"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"/><path d="M21 16v2a4 4 0 0 1-4 4h-5"/></svg></div>' +
-        '<p class="sup-status-intro">Já abriu um chamado com a gente? Digite o e-mail usado para ver a conversa.</p>' +
-        (mensagemErro ? '<p class="sup-status-erro">' + escapeHtml(mensagemErro) + '</p>' : '') +
-        '<form id="voe-sup-busca-form" class="sup-status-busca-form">' +
-          '<input class="form-input" type="email" id="voe-sup-busca-email" placeholder="Seu e-mail" required autocomplete="email" />' +
-          '<button type="submit" class="btn btn-primary sup-status-busca-btn">Buscar meu chamado</button>' +
-        '</form>';
-
-      var form = document.getElementById('voe-sup-busca-form');
-      form.addEventListener('submit', async function (e) {
-        e.preventDefault();
-        var email = document.getElementById('voe-sup-busca-email').value.trim();
-        if (!email) return;
-        renderCarregando();
-        try {
-          var res = await fetch(APP_URL + '/api/public/support-ticket/lookup', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email }),
-          });
-          var json = await res.json().catch(function () { return {}; });
-          if (res.ok && json.ticketId) {
-            salvar(json.ticketId, email);
-            carregarThread(json.ticketId, email);
-          } else if (res.status === 404 && json.error === 'sem_chamado_ativo') {
-            renderBusca('Não encontramos um chamado em aberto para esse e-mail.');
-          } else {
-            renderBusca('Não encontramos uma conta com esse e-mail.');
-          }
-        } catch (err) {
-          renderBusca('Falha de conexão. Tente novamente.');
-        }
-      });
+    // Sem tela de busca por e-mail: se o chamado salvo sumiu ou deu erro ao
+    // carregar, só avisamos — abrir outro é sempre pela Central de Ajuda.
+    function renderErro(mensagem) {
+      anexoPendente = null;
+      body.innerHTML = '<p class="sup-status-erro">' + escapeHtml(mensagem) + '</p>';
     }
 
     function renderCarregando() {
@@ -267,13 +265,17 @@ const APP_URL =
       } else {
         html +=
           '<div id="voe-sup-anexo-preview" class="sup-status-anexo-preview" hidden>' +
-            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>' +
+            '<div class="sup-status-anexo-thumb" id="voe-sup-anexo-thumb"></div>' +
             '<span class="sup-status-anexo-nome"></span>' +
+            '<span class="sup-status-anexo-spinner" id="voe-sup-anexo-spinner" hidden>' +
+              '<span class="sup-spinner sup-spinner--sm"></span>' +
+            '</span>' +
             '<button type="button" class="sup-status-anexo-remover" aria-label="Remover anexo">' +
               '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>' +
             '</button>' +
           '</div>' +
-          '<div class="sup-status-responder">' +
+          '<p class="sup-status-anexo-erro" id="voe-sup-anexo-erro" hidden></p>' +
+          '<div class="sup-status-responder" id="voe-sup-responder">' +
             '<button id="voe-sup-anexar" type="button" class="sup-status-anexar" aria-label="Anexar imagem ou vídeo" title="Anexar imagem ou vídeo">' +
               '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>' +
             '</button>' +
@@ -284,8 +286,6 @@ const APP_URL =
             '</button>' +
           '</div>';
       }
-
-      html += '<button id="voe-sup-trocar" class="sup-status-trocar">Acompanhar outro chamado</button>';
 
       body.innerHTML = html;
 
@@ -300,82 +300,159 @@ const APP_URL =
       var anexarBtn = document.getElementById('voe-sup-anexar');
       var anexoInput = document.getElementById('voe-sup-anexo-input');
       var anexoPreviewEl = document.getElementById('voe-sup-anexo-preview');
+      var anexoThumbEl = document.getElementById('voe-sup-anexo-thumb');
       var anexoNomeEl = anexoPreviewEl ? anexoPreviewEl.querySelector('.sup-status-anexo-nome') : null;
+      var anexoSpinnerEl = document.getElementById('voe-sup-anexo-spinner');
       var anexoRemoverBtn = anexoPreviewEl ? anexoPreviewEl.querySelector('.sup-status-anexo-remover') : null;
+      var anexoErroEl = document.getElementById('voe-sup-anexo-erro');
+      var responderEl = document.getElementById('voe-sup-responder');
+
+      // Erro fica numa linha própria — nunca sobrescreve o anexo já válido
+      // que porventura já esteja preparado (ex: um segundo arquivo rejeitado
+      // não deve fazer o primeiro, já anexado, sumir ou parecer com erro).
+      function mostrarErroAnexo(mensagem) {
+        anexoErro = mensagem;
+        atualizarPreviewAnexo();
+        if (anexoErroTimer) clearTimeout(anexoErroTimer);
+        anexoErroTimer = setTimeout(function () {
+          anexoErro = null;
+          atualizarPreviewAnexo();
+        }, 5000);
+      }
 
       function atualizarPreviewAnexo() {
-        if (!anexoPreviewEl || !anexoNomeEl) return;
-        if (anexoPendente) {
-          anexoNomeEl.textContent = anexoPendente.name;
-          anexoPreviewEl.hidden = false;
-        } else {
-          anexoPreviewEl.hidden = true;
+        if (anexoErroEl) {
+          anexoErroEl.textContent = anexoErro || '';
+          anexoErroEl.hidden = !anexoErro;
         }
+        if (enviarBtnRef) enviarBtnRef.disabled = anexoEnviando;
+        if (!anexoPreviewEl) return;
+
+        var mostrarChip = anexoEnviando || !!anexoPendente;
+        anexoPreviewEl.hidden = !mostrarChip;
+        if (!mostrarChip) return;
+
+        if (anexoThumbEl) {
+          if (anexoPreviewTipo === 'image' && anexoPreviewUrl) {
+            anexoThumbEl.innerHTML = '<img src="' + anexoPreviewUrl + '" alt="" />';
+          } else if (anexoPreviewTipo === 'video') {
+            anexoThumbEl.innerHTML = ICON_VIDEO;
+          } else {
+            anexoThumbEl.innerHTML = ICON_CLIP;
+          }
+        }
+        if (anexoNomeEl) anexoNomeEl.textContent = anexoPreviewNome || '';
+        if (anexoSpinnerEl) anexoSpinnerEl.hidden = !anexoEnviando;
+        if (anexoRemoverBtn) anexoRemoverBtn.hidden = anexoEnviando;
       }
       atualizarPreviewAnexo();
+
+      // Usado pelo botão de anexar, pelo colar (Ctrl+V) de imagem e pelo
+      // arrastar-e-soltar — um só caminho de validação e upload pros três.
+      async function enviarAnexo(file) {
+        var isImage = file.type.indexOf('image/') === 0;
+        var isVideo = file.type.indexOf('video/') === 0;
+        if (!isImage && !isVideo) {
+          mostrarErroAnexo('Só é possível anexar imagens ou vídeos.');
+          return;
+        }
+        var limiteMb = isImage ? 5 : 16;
+        if (file.size > limiteMb * 1024 * 1024) {
+          mostrarErroAnexo('Arquivo excede o limite de ' + limiteMb + 'MB para ' + (isImage ? 'imagens' : 'vídeos') + '.');
+          return;
+        }
+
+        limparAnexo(); // troca qualquer anexo/preview anterior por este
+        anexoPreviewUrl = isImage ? URL.createObjectURL(file) : null;
+        anexoPreviewTipo = isImage ? 'image' : 'video';
+        anexoPreviewNome = file.name;
+        anexoEnviando = true;
+        var geracao = ++anexoGeracao;
+        var abort = new AbortController();
+        anexoAbort = abort;
+        atualizarPreviewAnexo();
+
+        try {
+          var fd = new FormData();
+          fd.append('file', file);
+          fd.append('email', email);
+          var res = await fetch(APP_URL + '/api/public/support-ticket/' + ticket.id + '/attachments', {
+            method: 'POST',
+            body: fd,
+            signal: abort.signal,
+          });
+          if (geracao !== anexoGeracao) return; // removido/trocado enquanto isso
+          var json = await res.json().catch(function () { return {}; });
+          if (res.ok && json.path) {
+            anexoPendente = json;
+            anexoEnviando = false;
+            atualizarPreviewAnexo();
+          } else {
+            anexoEnviando = false;
+            anexoPreviewUrl = null;
+            anexoPreviewTipo = null;
+            anexoPreviewNome = null;
+            mostrarErroAnexo(json.error || 'Não foi possível anexar o arquivo.');
+          }
+        } catch (err) {
+          if (geracao !== anexoGeracao || (err && err.name === 'AbortError')) return;
+          anexoEnviando = false;
+          anexoPreviewUrl = null;
+          anexoPreviewTipo = null;
+          anexoPreviewNome = null;
+          mostrarErroAnexo('Falha de conexão ao enviar o anexo.');
+        }
+      }
 
       if (anexarBtn && anexoInput) {
         anexarBtn.addEventListener('click', function () {
           if (anexoEnviando) return;
           anexoInput.click();
         });
-        anexoInput.addEventListener('change', async function () {
+        anexoInput.addEventListener('change', function () {
           var file = anexoInput.files && anexoInput.files[0];
           anexoInput.value = '';
-          if (!file) return;
-
-          var isImage = file.type.indexOf('image/') === 0;
-          var isVideo = file.type.indexOf('video/') === 0;
-          if (!isImage && !isVideo) {
-            alert('Só é possível anexar imagens ou vídeos.');
-            return;
-          }
-          var limiteMb = isImage ? 5 : 16;
-          if (file.size > limiteMb * 1024 * 1024) {
-            alert('Arquivo excede o limite de ' + limiteMb + 'MB para ' + (isImage ? 'imagens' : 'vídeos') + '.');
-            return;
-          }
-
-          anexoEnviando = true;
-          anexarBtn.disabled = true;
-          try {
-            var fd = new FormData();
-            fd.append('file', file);
-            fd.append('email', email);
-            var res = await fetch(APP_URL + '/api/public/support-ticket/' + ticket.id + '/attachments', {
-              method: 'POST',
-              body: fd,
-            });
-            var json = await res.json().catch(function () { return {}; });
-            if (res.ok && json.path) {
-              anexoPendente = json;
-              atualizarPreviewAnexo();
-            } else {
-              alert(json.error || 'Não foi possível anexar o arquivo.');
-            }
-          } catch (err) {
-            alert('Falha de conexão ao enviar o anexo.');
-          } finally {
-            anexoEnviando = false;
-            anexarBtn.disabled = false;
-          }
+          if (file) enviarAnexo(file);
         });
       }
 
       if (anexoRemoverBtn) {
         anexoRemoverBtn.addEventListener('click', function () {
-          anexoPendente = null;
+          limparAnexo();
           atualizarPreviewAnexo();
         });
       }
 
-      var enviarBtn = document.getElementById('voe-sup-enviar');
+      // Arrastar um arquivo sobre a área de resposta também anexa — mesmo
+      // caminho do botão. Destaque visual só enquanto arrasta por cima.
+      if (responderEl) {
+        ['dragenter', 'dragover'].forEach(function (evt) {
+          responderEl.addEventListener(evt, function (e) {
+            e.preventDefault();
+            responderEl.classList.add('sup-status-responder--dragover');
+          });
+        });
+        ['dragleave', 'drop'].forEach(function (evt) {
+          responderEl.addEventListener(evt, function (e) {
+            e.preventDefault();
+            responderEl.classList.remove('sup-status-responder--dragover');
+          });
+        });
+        responderEl.addEventListener('drop', function (e) {
+          if (anexoEnviando) return;
+          var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+          if (file) enviarAnexo(file);
+        });
+      }
+
+      var enviarBtnRef = document.getElementById('voe-sup-enviar');
       var textarea = document.getElementById('voe-sup-resposta');
-      if (enviarBtn && textarea) {
+      if (enviarBtnRef && textarea) {
         var enviar = async function () {
           var texto = textarea.value.trim();
+          if (anexoEnviando) return; // aguarda o upload do anexo terminar
           if (!texto && !anexoPendente) return;
-          enviarBtn.disabled = true;
+          enviarBtnRef.disabled = true;
           try {
             var res = await fetch(APP_URL + '/api/public/support-ticket/' + ticket.id + '/messages', {
               method: 'POST',
@@ -388,31 +465,40 @@ const APP_URL =
             });
             if (res.ok) {
               textarea.value = '';
-              anexoPendente = null;
+              limparAnexo();
               carregarThread(ticket.id, email, true);
             }
           } finally {
-            enviarBtn.disabled = false;
+            enviarBtnRef.disabled = false;
           }
         };
-        enviarBtn.addEventListener('click', enviar);
+        enviarBtnRef.addEventListener('click', enviar);
         textarea.addEventListener('keydown', function (e) {
           if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             enviar();
           }
         });
-      }
 
-      var trocarBtn = document.getElementById('voe-sup-trocar');
-      if (trocarBtn) {
-        trocarBtn.addEventListener('click', function () {
-          anexoPendente = null;
-          limpar();
-          pararPolling();
-          renderBusca();
+        // Cola uma imagem copiada (print, Ctrl+C de outra janela etc.)
+        // direto no campo de texto com Ctrl+V — sem precisar do botão de
+        // anexar. Um anexo por vez, igual ao fluxo do botão.
+        textarea.addEventListener('paste', function (e) {
+          if (anexoEnviando) return;
+          var items = (e.clipboardData && e.clipboardData.items) || [];
+          for (var i = 0; i < items.length; i++) {
+            if (items[i].kind === 'file' && items[i].type.indexOf('image/') === 0) {
+              var file = items[i].getAsFile();
+              if (file) {
+                e.preventDefault();
+                enviarAnexo(file);
+              }
+              break;
+            }
+          }
         });
       }
+
     }
 
     async function carregarThread(ticketId, email, semLoading) {
@@ -425,12 +511,23 @@ const APP_URL =
         if (res.ok && json.ticket) {
           renderThread(json.ticket, json.messages || [], email);
           iniciarPolling(ticketId, email);
-        } else {
+        } else if (res.status === 404) {
+          // Resposta clara do backend: esse chamado não existe (mais) pra
+          // esse e-mail. Só AQUI faz sentido esquecer a referência local.
           limpar();
-          renderBusca('Não encontramos esse chamado.');
+          pararPolling();
+          btn.hidden = true;
+          renderErro('Não encontramos esse chamado. Para abrir outro, use a Central de Ajuda.');
+        } else {
+          // Erro do servidor (5xx) ou resposta inesperada — instabilidade
+          // passageira, não prova que o chamado sumiu. Mantém a referência
+          // salva; o próximo clique ou o polling tentam de novo.
+          renderErro('Não foi possível carregar o chamado agora. Tente novamente em instantes.');
         }
       } catch (err) {
-        renderBusca('Falha de conexão. Tente novamente.');
+        // Falha de rede (sem internet, servidor fora do ar) — mesma lógica:
+        // não apaga nada, só avisa.
+        renderErro('Falha de conexão. Tente novamente.');
       }
     }
 
@@ -447,14 +544,29 @@ const APP_URL =
 
     async function atualizarBadge() {
       var s = salvo();
-      if (!s) return; // botão continua visível, só não há badge pra checar
+      if (!s) return; // sem chamado salvo, botão já está escondido por padrão
       suprimirBubbleVendas();
       try {
         var res = await fetch(
           APP_URL + '/api/public/support-ticket/' + s.ticketId + '?email=' + encodeURIComponent(s.email),
         );
         var json = await res.json().catch(function () { return {}; });
-        if (!res.ok || !json.ticket) return;
+        if (res.status === 404) {
+          // Resposta clara do backend: chamado não existe (mais) pra esse
+          // e-mail. Só aqui esquecemos a referência e escondemos o botão.
+          limpar();
+          pararPolling();
+          btn.hidden = true;
+          return;
+        }
+        if (!res.ok || !json.ticket) {
+          // Erro do servidor (5xx) ou resposta malformada — instabilidade
+          // passageira, não prova que o chamado sumiu. Não mexe na
+          // visibilidade nem apaga a referência; tenta de novo no próximo
+          // ciclo (iniciarBadgeTimer) sem incomodar o cliente.
+          return;
+        }
+        aplicarVisibilidadeBotao(json.ticket.status);
         var msgs = json.messages || [];
         var vistoEm = obterVisto(s.ticketId);
         // Quantidade de verdade, não só "tem novidade" — como numa mensagem
@@ -476,13 +588,15 @@ const APP_URL =
 
     // ── Abrir/fechar ──────────────────────────────────────────────────────
     function abrirPainel() {
+      // O botão só fica visível quando salvo() existe (ver
+      // aplicarVisibilidadeBotao) — sem chamado salvo não há como abrir.
+      var s = salvo();
+      if (!s) return;
       panel.hidden = false;
       requestAnimationFrame(function () { panel.classList.add('is-open'); });
       posicionar();
       window.dispatchEvent(new CustomEvent('voe:support-widget-open'));
-      var s = salvo();
-      if (s) carregarThread(s.ticketId, s.email);
-      else renderBusca();
+      carregarThread(s.ticketId, s.email);
     }
     function fecharPainel() {
       panel.classList.remove('is-open');
@@ -508,18 +622,25 @@ const APP_URL =
     }
 
     // Recém-aberto um chamado agora (voeops.com/suporte)? O próprio form
-    // grava STORAGE_KEY antes de disparar isso. O botão já estava visível
-    // (agora é sempre); só precisa passar a checar o badge.
+    // grava STORAGE_KEY antes de disparar isso. Reaparece na hora (sem
+    // esperar o fetch do atualizarBadge) caso o chamado anterior tivesse
+    // escondido o botão por estar fechado.
     window.addEventListener('voe:chamado-aberto', function () {
+      btn.hidden = false;
       posicionar();
       suprimirBubbleVendas();
       atualizarBadge();
       iniciarBadgeTimer();
     });
 
-    // Botão é sempre visível — só o conteúdo do painel muda (conversa salva
-    // neste navegador, ou formulário de busca por e-mail).
+    // Botão começa escondido (ver atributo hidden no markup) — mas com
+    // chamado salvo, mostra na hora, de forma otimista: já sabemos que existe
+    // uma referência, então não faz sentido esperar a rede pra decidir. O
+    // atualizarBadge() abaixo só CORRIGE isso quando tiver certeza (chamado
+    // fechado ou 404 confirmado) — uma falha passageira de rede não deve
+    // apagar um botão que já devería estar visível.
     if (salvo()) {
+      btn.hidden = false;
       suprimirBubbleVendas();
       atualizarBadge();
       iniciarBadgeTimer();
@@ -692,27 +813,6 @@ const APP_URL =
     flex-direction: column;
   }
 
-  .sup-status-intro-icone {
-    width: 48px;
-    height: 48px;
-    margin: var(--space-sm) auto var(--space-md);
-    border-radius: 50%;
-    background: var(--gradient-primary);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: var(--shadow-glow);
-  }
-
-  .sup-status-intro {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    text-align: center;
-    margin-bottom: var(--space-lg);
-    line-height: 1.55;
-  }
-
   .sup-status-erro {
     font-size: 0.825rem;
     color: var(--terracotta);
@@ -720,18 +820,6 @@ const APP_URL =
     padding: 10px 14px;
     border-radius: var(--radius-sm);
     margin-bottom: var(--space-md);
-  }
-
-  .sup-status-busca-form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-  }
-
-  .sup-status-busca-btn {
-    width: 100%;
-    justify-content: center;
-    box-shadow: var(--shadow-glow);
   }
 
   .sup-status-loading {
@@ -751,6 +839,12 @@ const APP_URL =
     animation: spin 0.8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  .sup-spinner--sm {
+    width: 14px;
+    height: 14px;
+    border-width: 2px;
+  }
 
   .sup-status-ticket-meta {
     display: flex;
@@ -865,6 +959,26 @@ const APP_URL =
     background: var(--turquesa-10);
     color: var(--turquesa);
     font-size: 0.78rem;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .sup-status-anexo-thumb {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-card);
+  }
+
+  .sup-status-anexo-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
 
   .sup-status-anexo-nome {
@@ -874,6 +988,20 @@ const APP_URL =
     text-overflow: ellipsis;
     white-space: nowrap;
     color: var(--text-primary);
+  }
+
+  .sup-status-anexo-spinner {
+    flex-shrink: 0;
+    display: flex;
+  }
+
+  .sup-status-anexo-erro {
+    font-size: 0.78rem;
+    color: var(--terracotta);
+    background: var(--terracotta-10);
+    padding: 6px 10px;
+    margin-bottom: 8px;
+    border-radius: var(--radius-md);
   }
 
   .sup-status-anexo-remover {
@@ -899,6 +1027,13 @@ const APP_URL =
     border-top: 1px solid var(--glass-border);
     padding-top: var(--space-md);
     margin-top: auto;
+    border-radius: var(--radius-md);
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .sup-status-responder--dragover {
+    background: var(--turquesa-10);
+    box-shadow: inset 0 0 0 2px var(--turquesa-25);
   }
 
   .sup-status-anexar {
@@ -963,19 +1098,6 @@ const APP_URL =
     border-top: 1px solid var(--glass-border);
     margin-top: auto;
   }
-
-  .sup-status-trocar {
-    display: block;
-    margin: var(--space-md) auto 0;
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    font-size: 0.75rem;
-    cursor: pointer;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-  .sup-status-trocar:hover { color: var(--turquesa); }
 
   @media (max-width: 480px) {
     .sup-status-panel { max-height: 72vh; }

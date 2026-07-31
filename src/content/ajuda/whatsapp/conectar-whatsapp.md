@@ -5,7 +5,7 @@ categoria: whatsapp
 rotas: ["/settings", "/inbox", "/onboarding"]
 sinonimos: ["conectar whatsapp", "ligar whatsapp", "adicionar numero", "qr code", "primeira conexao"]
 ordem: 1
-atualizado: 2026-07-20
+atualizado: 2026-07-29
 revisado: true
 ---
 
@@ -15,7 +15,10 @@ lugar só.
 
 ## Antes de começar
 
-- Você precisa ser **administrador** do workspace.
+- Não é preciso ser administrador do workspace para conectar um WhatsApp — o
+  que importa é enxergar o menu **Configurações**. Por padrão só Proprietário e
+  Administrador veem esse menu, mas qualquer um deles pode liberar o acesso a
+  um Membro específico, sem precisar promovê-lo.
 - Decida qual tipo de conexão vai usar. Se ainda não sabe, leia
   [WhatsApp Api Voe ou Api Oficial: qual escolher](/ajuda/whatsapp/api-voe-ou-oficial).
 

@@ -113,13 +113,46 @@ const defaultJsonLd = {
           return null;
         }
 
+        // Achado empírico: clicar de novo no .fab NÃO fecha o popup do
+        // widget de vendas (o script dele só trata o clique como "abrir";
+        // fechar de verdade só acontece pelo X de dentro do iframe, via
+        // postMessage "voe-close"). Por isso, para fechar o popup de FORA
+        // (quando o Suporte abre), a única forma confiável é esconder o
+        // iframe na marra — ver window.__voeSalesHiddenBySupport, também
+        // respeitado pelo script de responsividade mobile logo abaixo.
+        function findWidgetIframe() {
+          var list = document.getElementsByTagName('iframe');
+          for (var i = 0; i < list.length; i++) {
+            var f = list[i];
+            var t = f.getAttribute('title') || '';
+            var s = f.getAttribute('src') || '';
+            if (t.indexOf('Falar com') === 0 || s.indexOf('voeops.com/embed') !== -1) return f;
+          }
+          return null;
+        }
+
+        function hideSalesWidget() {
+          var f = findWidgetIframe();
+          if (f) f.style.setProperty('display', 'none', 'important');
+          window.__voeSalesHiddenBySupport = true;
+        }
+
+        function unhideSalesWidget() {
+          window.__voeSalesHiddenBySupport = false;
+          var f = findWidgetIframe();
+          if (f) f.style.removeProperty('display');
+        }
+
         function attachLauncherListener(el) {
           if (el._voeListenerAttached) return;
           el._voeListenerAttached = true;
           el.addEventListener('click', function () {
             if (skipToggle) { skipToggle = false; return; }
             widgetOpen = !widgetOpen;
-            if (widgetOpen) window.dispatchEvent(new CustomEvent('voe:sales-widget-open'));
+            if (widgetOpen) {
+              unhideSalesWidget();
+              window.dispatchEvent(new CustomEvent('voe:sales-widget-open'));
+            }
           });
         }
 
@@ -145,6 +178,7 @@ const defaultJsonLd = {
             widgetOpen = true;
             skipToggle = true;
             launcher.click();
+            unhideSalesWidget();
             window.dispatchEvent(new CustomEvent('voe:sales-widget-open'));
           }
         });
@@ -198,6 +232,7 @@ const defaultJsonLd = {
             widgetOpen = true;
             skipToggle = true;
             launcher.click();
+            unhideSalesWidget();
             window.dispatchEvent(new CustomEvent('voe:sales-widget-open'));
             return;
           }
@@ -207,14 +242,15 @@ const defaultJsonLd = {
 
         // Um widget não pode ficar aberto em cima do outro: quando o de
         // suporte abre (SupportStatusWidget), fecha o de vendas se estiver
-        // aberto.
+        // aberto. launcher.click() sozinho não fecha o popup de vendas (ver
+        // nota em findWidgetIframe) — por isso escondemos o iframe na marra.
         window.addEventListener('voe:support-widget-open', function () {
           if (!launcher) launcher = findFab();
-          if (launcher && widgetOpen) {
+          if (widgetOpen) {
             widgetOpen = false;
-            skipToggle = true;
-            launcher.click();
+            if (launcher) { skipToggle = true; launcher.click(); }
           }
+          hideSalesWidget();
         });
 
         // Abre ao rolar a página > 150px (somente na home)
@@ -292,6 +328,12 @@ const defaultJsonLd = {
           } else {
             // Desktop: restaura exatamente o style original do widget.
             f.setAttribute('style', f.getAttribute('data-voe-orig-style') || '');
+            // Não desfaz o "escondido na marra" pedido pelo Suporte (ver
+            // Base.astro/hideSalesWidget) — um resize no meio do caminho não
+            // pode trazer o popup de vendas de volta por cima do Suporte.
+            if (window.__voeSalesHiddenBySupport) {
+              f.style.setProperty('display', 'none', 'important');
+            }
           }
         }
 

@@ -151,15 +151,22 @@ const jsonLd = {
       function buscar(termo) {
         const t = normalizar(termo).trim();
         if (t.length < 2) return [];
-        const termos = t.split(/\s+/);
+        const termos = t.split(/\s+/).filter(Boolean);
         return itens
           .map((item) => {
+            const tituloNorm = normalizar(item.t);
+            let matched = 0;
             let score = 0;
             for (const p of termos) {
-              if (!item._busca.includes(p)) return null;
-              if (normalizar(item.t).includes(p)) score += 2;
-              score += 1;
+              if (!item._busca.includes(p)) continue;
+              matched++;
+              score += tituloNorm.includes(p) ? 3 : 1;
             }
+            if (matched === 0) return null;
+            // Prioriza quem bate com TODOS os termos digitados, mas ainda
+            // mostra resultados parciais em vez de "nada encontrado" — uma
+            // busca de duas palavras não deve zerar por causa de uma só.
+            if (matched === termos.length) score += 5;
             return { item, score };
           })
           .filter(Boolean)
@@ -221,7 +228,7 @@ const jsonLd = {
   </script>
 </Base>
 
-<style>
+<style is:global>
   .ajuda-hero {
     padding: 140px 0 48px;
     text-align: center;
