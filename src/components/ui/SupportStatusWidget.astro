@@ -1,0 +1,1108 @@
+---
+// src/components/ui/SupportStatusWidget.astro
+// Widget flutuante de acompanhamento do chamado — para quem abriu um chamado
+// pelo formulário sem login (/suporte) e precisa ver a resposta do time SEM
+// precisar entrar no app (o problema mais comum ali é justamente "não
+// consigo entrar").
+//
+// Fica ao lado do widget de vendas (widget.voeops.com/w.js, injetado pelo
+// Base.astro numa shadow root). Como não controlamos o CSS desse widget
+// externo, a posição do nosso botão é calculada em JS a partir da posição
+// real do botão dele (ver waitForSalesFab abaixo) — com um fallback fixo
+// caso ele não seja encontrado (bloqueador de anúncios, rede lenta etc.).
+//
+// Sem sessão: usa os endpoints /api/public/support-ticket/** do app, que
+// verificam o dono do chamado pelo e-mail (ver rotas em
+// app.voeops.com/src/app/api/public/support-ticket).
+//
+// Botão só aparece quando há um chamado ATIVO (não fechado) salvo neste
+// navegador (localStorage) — ver aplicarVisibilidadeBotao(). Sem chamado
+// salvo, ou com o chamado salvo já fechado, o botão fica escondido: não
+// existe aqui uma tela de "buscar meu chamado por e-mail" nem forma de abrir
+// um chamado novo por este widget — isso é sempre feito pela Central de
+// Ajuda / página /suporte, cujo formulário grava a referência local que faz
+// o botão aparecer (evento voe:chamado-aberto).
+const APP_URL =
+  import.meta.env.PUBLIC_APP_URL ||
+  (import.meta.env.DEV ? 'http://localhost:3000' : 'https://app.voeops.com');
+---
+
+<button id="voe-sup-status-btn" class="sup-status-btn" aria-label="Acompanhar meu chamado" title="Acompanhar meu chamado" hidden>
+  <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"/>
+    <path d="M21 16v2a4 4 0 0 1-4 4h-5"/>
+  </svg>
+  <span class="sup-status-dot" hidden></span>
+</button>
+
+<div id="voe-sup-status-panel" class="sup-status-panel" hidden>
+  <div class="sup-status-header">
+    <span class="sup-status-header-icone" aria-hidden="true">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"/>
+        <path d="M21 16v2a4 4 0 0 1-4 4h-5"/>
+      </svg>
+    </span>
+    <span class="sup-status-header-title">Suporte</span>
+    <button id="voe-sup-status-close" class="sup-status-close" aria-label="Fechar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="sup-status-body-wrap">
+    <div class="sup-status-texture" aria-hidden="true"></div>
+    <div id="voe-sup-status-body" class="sup-status-body"></div>
+  </div>
+</div>
+
+<script define:vars={{ APP_URL }}>
+  (function () {
+    var STORAGE_KEY = 'voe_sup_status_ticket'; // { ticketId, email }
+    var SEEN_KEY_PREFIX = 'voe_sup_status_seen_';
+
+    var btn = document.getElementById('voe-sup-status-btn');
+    var panel = document.getElementById('voe-sup-status-panel');
+    var body = document.getElementById('voe-sup-status-body');
+    var closeBtn = document.getElementById('voe-sup-status-close');
+    if (!btn || !panel || !body || !closeBtn) return;
+
+    var pollTimer = null;
+    var badgeTimer = null;
+    // Anexo já enviado ao Storage, aguardando ser incluído na próxima
+    // mensagem (o upload acontece na escolha do arquivo, não no envio).
+    var anexoPendente = null;
+    var anexoEnviando = false;
+    // Preview local (thumbnail) — aparece na hora, sem esperar o upload
+    // terminar, pra quem colou/anexou já ver o que está prestes a mandar.
+    var anexoPreviewUrl = null; // object URL local, só pra imagem
+    var anexoPreviewTipo = null; // 'image' | 'video'
+    var anexoPreviewNome = null;
+    var anexoErro = null; // mensagem de erro exibida no lugar do alert()
+    var anexoErroTimer = null; // some sozinho depois de alguns segundos
+    var anexoAbort = null; // AbortController do upload em andamento
+    var anexoGeracao = 0; // ignora resultado de upload já cancelado/trocado
+
+    var ICON_CLIP =
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>';
+    var ICON_VIDEO =
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>';
+
+    function limparAnexo() {
+      if (anexoAbort) { try { anexoAbort.abort(); } catch (e) {} anexoAbort = null; }
+      if (anexoPreviewUrl) { try { URL.revokeObjectURL(anexoPreviewUrl); } catch (e) {} }
+      if (anexoErroTimer) { clearTimeout(anexoErroTimer); anexoErroTimer = null; }
+      anexoPreviewUrl = null;
+      anexoPreviewTipo = null;
+      anexoPreviewNome = null;
+      anexoPendente = null;
+      anexoEnviando = false;
+      anexoErro = null;
+      anexoGeracao++;
+    }
+
+    function salvo() {
+      try {
+        var raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) { return null; }
+    }
+    function limpar() {
+      try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+    }
+    function marcarVisto(ticketId, quando) {
+      try { localStorage.setItem(SEEN_KEY_PREFIX + ticketId, quando); } catch (e) {}
+    }
+    function obterVisto(ticketId) {
+      try { return localStorage.getItem(SEEN_KEY_PREFIX + ticketId); } catch (e) { return null; }
+    }
+
+    // Some assim que o chamado salvo é encerrado — não faz sentido continuar
+    // oferecendo "acompanhar" um chamado que já fechou. Volta a aparecer só
+    // quando o mesmo cliente abrir um chamado novo (voe:chamado-aberto).
+    function aplicarVisibilidadeBotao(status) {
+      btn.hidden = status === 'fechado';
+    }
+
+    // ── Posicionamento ao lado do widget de vendas ──────────────────────
+    function findSalesFab() {
+      var host = document.getElementById('voe-widget-host');
+      if (host && host.shadowRoot) return host.shadowRoot.querySelector('.fab');
+      return null;
+    }
+
+    function posicionar() {
+      var fab = findSalesFab();
+      var gap = 14;
+      if (fab) {
+        var rect = fab.getBoundingClientRect();
+        if (rect.width > 0) {
+          // Mesmo tamanho do botão do widget de vendas, sempre — medido ao
+          // vivo em vez de fixo, então continua batendo mesmo se o outro
+          // widget mudar de tamanho.
+          btn.style.width = rect.width + 'px';
+          btn.style.height = rect.height + 'px';
+
+          var rightOffset = Math.max(window.innerWidth - rect.left + gap, 16);
+          var bottomOffset = Math.max(window.innerHeight - rect.bottom, 16);
+          btn.style.right = rightOffset + 'px';
+          btn.style.bottom = bottomOffset + 'px';
+          panel.style.right = rightOffset + 'px';
+          panel.style.bottom = (bottomOffset + rect.height + 12) + 'px';
+          return;
+        }
+      }
+      // Fallback: widget de vendas não encontrado (bloqueado, lento etc.)
+      var isMobile = window.innerWidth <= 768;
+      btn.style.width = '56px';
+      btn.style.height = '56px';
+      btn.style.right = isMobile ? '16px' : '24px';
+      btn.style.bottom = isMobile ? '86px' : '96px';
+      panel.style.right = btn.style.right;
+      panel.style.bottom = isMobile ? '150px' : '162px';
+    }
+
+    var tentativas = 0;
+    var posicionaTimer = setInterval(function () {
+      posicionar();
+      tentativas++;
+      if (tentativas > 60) clearInterval(posicionaTimer); // ~9s
+    }, 150);
+    window.addEventListener('resize', posicionar);
+
+    // ── Suprime o balãozinho de texto do widget de vendas ────────────────
+    // Só quando existe de fato um chamado salvo neste navegador — ter ou não
+    // uma conversa de suporte em andamento é o que deve suprimir o balão.
+    function suprimirBubbleVendas() {
+      var host = document.getElementById('voe-widget-host');
+      var bubble = host && host.shadowRoot ? host.shadowRoot.querySelector('.bubble') : null;
+      if (bubble && salvo()) bubble.style.display = 'none';
+    }
+
+    function observarBubbleVendas() {
+      var host = document.getElementById('voe-widget-host');
+      var bubble = host && host.shadowRoot ? host.shadowRoot.querySelector('.bubble') : null;
+      if (!bubble) { setTimeout(observarBubbleVendas, 300); return; }
+      new MutationObserver(suprimirBubbleVendas).observe(bubble, {
+        attributes: true,
+        attributeFilter: ['style'],
+      });
+      suprimirBubbleVendas();
+    }
+    observarBubbleVendas();
+
+    // ── Renderização dos estados do painel ───────────────────────────────
+    var STATUS_LABEL = {
+      aberto: 'Aberto',
+      em_atendimento: 'Em atendimento',
+      aguardando_cliente: 'Aguardando você',
+      resolvido: 'Resolvido',
+      fechado: 'Fechado',
+    };
+
+    function escapeHtml(s) {
+      var d = document.createElement('div');
+      d.textContent = s == null ? '' : s;
+      return d.innerHTML;
+    }
+
+    function horaCurta(iso) {
+      try {
+        return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      } catch (e) { return ''; }
+    }
+
+    // Sem tela de busca por e-mail: se o chamado salvo sumiu ou deu erro ao
+    // carregar, só avisamos — abrir outro é sempre pela Central de Ajuda.
+    function renderErro(mensagem) {
+      anexoPendente = null;
+      body.innerHTML = '<p class="sup-status-erro">' + escapeHtml(mensagem) + '</p>';
+    }
+
+    function renderCarregando() {
+      body.innerHTML = '<div class="sup-status-loading"><span class="sup-spinner"></span></div>';
+    }
+
+    function renderThread(ticket, mensagens, email) {
+      var statusLabel = STATUS_LABEL[ticket.status] || ticket.status;
+      var html = '<div class="sup-status-ticket-meta">' +
+        '<span class="sup-status-pill">' + escapeHtml(statusLabel) + '</span>' +
+        '<span class="sup-status-subject">Suporte Voe</span>' +
+        '</div>' +
+        '<div class="sup-status-msgs" id="voe-sup-msgs">';
+
+      mensagens.forEach(function (m) {
+        if (m.sender_type === 'system') {
+          html += '<div class="sup-msg-system-wrap"><span class="sup-msg-system">' +
+            '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>' +
+            escapeHtml(m.body) + '</span></div>';
+          return;
+        }
+        var isCliente = m.sender_type === 'cliente';
+        var anexosHtml = '';
+        (m.attachments || []).forEach(function (a) {
+          var src = APP_URL + '/api/public/support-ticket/' + ticket.id + '/attachments?email=' +
+            encodeURIComponent(email) + '&path=' + encodeURIComponent(a.path);
+          if (a.type === 'video') {
+            anexosHtml += '<video class="sup-msg-anexo" src="' + src + '" controls preload="metadata"></video>';
+          } else {
+            anexosHtml += '<a href="' + src + '" target="_blank" rel="noopener noreferrer">' +
+              '<img class="sup-msg-anexo" src="' + src + '" alt="' + escapeHtml(a.name || 'Anexo') + '" />' +
+              '</a>';
+          }
+        });
+        html += '<div class="sup-msg-row ' + (isCliente ? 'sup-msg-row--cliente' : 'sup-msg-row--agente') + '">' +
+          (anexosHtml ? '<div class="sup-msg-anexos">' + anexosHtml + '</div>' : '') +
+          (m.body ? '<div class="sup-msg-bubble ' + (isCliente ? 'sup-msg-bubble--cliente' : 'sup-msg-bubble--agente') + '">' +
+            escapeHtml(m.body) +
+          '</div>' : '') +
+          '<span class="sup-msg-hora">' + (isCliente ? 'Você' : 'Suporte') + ' · ' + horaCurta(m.created_at) + '</span>' +
+        '</div>';
+      });
+
+      html += '</div>';
+
+      if (ticket.status === 'fechado') {
+        html += '<p class="sup-status-encerrado">Este chamado foi encerrado.</p>';
+      } else {
+        html +=
+          '<div id="voe-sup-anexo-preview" class="sup-status-anexo-preview" hidden>' +
+            '<div class="sup-status-anexo-thumb" id="voe-sup-anexo-thumb"></div>' +
+            '<span class="sup-status-anexo-nome"></span>' +
+            '<span class="sup-status-anexo-spinner" id="voe-sup-anexo-spinner" hidden>' +
+              '<span class="sup-spinner sup-spinner--sm"></span>' +
+            '</span>' +
+            '<button type="button" class="sup-status-anexo-remover" aria-label="Remover anexo">' +
+              '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>' +
+            '</button>' +
+          '</div>' +
+          '<p class="sup-status-anexo-erro" id="voe-sup-anexo-erro" hidden></p>' +
+          '<div class="sup-status-responder" id="voe-sup-responder">' +
+            '<button id="voe-sup-anexar" type="button" class="sup-status-anexar" aria-label="Anexar imagem ou vídeo" title="Anexar imagem ou vídeo">' +
+              '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>' +
+            '</button>' +
+            '<input id="voe-sup-anexo-input" type="file" accept="image/*,video/*" hidden />' +
+            '<textarea id="voe-sup-resposta" class="sup-status-textarea" rows="2" placeholder="Escreva uma mensagem…"></textarea>' +
+            '<button id="voe-sup-enviar" class="sup-status-enviar" aria-label="Enviar">' +
+              '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>' +
+            '</button>' +
+          '</div>';
+      }
+
+      body.innerHTML = html;
+
+      var msgsEl = document.getElementById('voe-sup-msgs');
+      if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
+
+      var ultima = mensagens.length ? mensagens[mensagens.length - 1] : null;
+      if (ultima) marcarVisto(ticket.id, ultima.created_at);
+      atualizarBadge();
+
+      // ── Anexo (imagem/vídeo) ──────────────────────────────────────────
+      var anexarBtn = document.getElementById('voe-sup-anexar');
+      var anexoInput = document.getElementById('voe-sup-anexo-input');
+      var anexoPreviewEl = document.getElementById('voe-sup-anexo-preview');
+      var anexoThumbEl = document.getElementById('voe-sup-anexo-thumb');
+      var anexoNomeEl = anexoPreviewEl ? anexoPreviewEl.querySelector('.sup-status-anexo-nome') : null;
+      var anexoSpinnerEl = document.getElementById('voe-sup-anexo-spinner');
+      var anexoRemoverBtn = anexoPreviewEl ? anexoPreviewEl.querySelector('.sup-status-anexo-remover') : null;
+      var anexoErroEl = document.getElementById('voe-sup-anexo-erro');
+      var responderEl = document.getElementById('voe-sup-responder');
+
+      // Erro fica numa linha própria — nunca sobrescreve o anexo já válido
+      // que porventura já esteja preparado (ex: um segundo arquivo rejeitado
+      // não deve fazer o primeiro, já anexado, sumir ou parecer com erro).
+      function mostrarErroAnexo(mensagem) {
+        anexoErro = mensagem;
+        atualizarPreviewAnexo();
+        if (anexoErroTimer) clearTimeout(anexoErroTimer);
+        anexoErroTimer = setTimeout(function () {
+          anexoErro = null;
+          atualizarPreviewAnexo();
+        }, 5000);
+      }
+
+      function atualizarPreviewAnexo() {
+        if (anexoErroEl) {
+          anexoErroEl.textContent = anexoErro || '';
+          anexoErroEl.hidden = !anexoErro;
+        }
+        if (enviarBtnRef) enviarBtnRef.disabled = anexoEnviando;
+        if (!anexoPreviewEl) return;
+
+        var mostrarChip = anexoEnviando || !!anexoPendente;
+        anexoPreviewEl.hidden = !mostrarChip;
+        if (!mostrarChip) return;
+
+        if (anexoThumbEl) {
+          if (anexoPreviewTipo === 'image' && anexoPreviewUrl) {
+            anexoThumbEl.innerHTML = '<img src="' + anexoPreviewUrl + '" alt="" />';
+          } else if (anexoPreviewTipo === 'video') {
+            anexoThumbEl.innerHTML = ICON_VIDEO;
+          } else {
+            anexoThumbEl.innerHTML = ICON_CLIP;
+          }
+        }
+        if (anexoNomeEl) anexoNomeEl.textContent = anexoPreviewNome || '';
+        if (anexoSpinnerEl) anexoSpinnerEl.hidden = !anexoEnviando;
+        if (anexoRemoverBtn) anexoRemoverBtn.hidden = anexoEnviando;
+      }
+      atualizarPreviewAnexo();
+
+      // Usado pelo botão de anexar, pelo colar (Ctrl+V) de imagem e pelo
+      // arrastar-e-soltar — um só caminho de validação e upload pros três.
+      async function enviarAnexo(file) {
+        var isImage = file.type.indexOf('image/') === 0;
+        var isVideo = file.type.indexOf('video/') === 0;
+        if (!isImage && !isVideo) {
+          mostrarErroAnexo('Só é possível anexar imagens ou vídeos.');
+          return;
+        }
+        var limiteMb = isImage ? 5 : 16;
+        if (file.size > limiteMb * 1024 * 1024) {
+          mostrarErroAnexo('Arquivo excede o limite de ' + limiteMb + 'MB para ' + (isImage ? 'imagens' : 'vídeos') + '.');
+          return;
+        }
+
+        limparAnexo(); // troca qualquer anexo/preview anterior por este
+        anexoPreviewUrl = isImage ? URL.createObjectURL(file) : null;
+        anexoPreviewTipo = isImage ? 'image' : 'video';
+        anexoPreviewNome = file.name;
+        anexoEnviando = true;
+        var geracao = ++anexoGeracao;
+        var abort = new AbortController();
+        anexoAbort = abort;
+        atualizarPreviewAnexo();
+
+        try {
+          var fd = new FormData();
+          fd.append('file', file);
+          fd.append('email', email);
+          var res = await fetch(APP_URL + '/api/public/support-ticket/' + ticket.id + '/attachments', {
+            method: 'POST',
+            body: fd,
+            signal: abort.signal,
+          });
+          if (geracao !== anexoGeracao) return; // removido/trocado enquanto isso
+          var json = await res.json().catch(function () { return {}; });
+          if (res.ok && json.path) {
+            anexoPendente = json;
+            anexoEnviando = false;
+            atualizarPreviewAnexo();
+          } else {
+            anexoEnviando = false;
+            anexoPreviewUrl = null;
+            anexoPreviewTipo = null;
+            anexoPreviewNome = null;
+            mostrarErroAnexo(json.error || 'Não foi possível anexar o arquivo.');
+          }
+        } catch (err) {
+          if (geracao !== anexoGeracao || (err && err.name === 'AbortError')) return;
+          anexoEnviando = false;
+          anexoPreviewUrl = null;
+          anexoPreviewTipo = null;
+          anexoPreviewNome = null;
+          mostrarErroAnexo('Falha de conexão ao enviar o anexo.');
+        }
+      }
+
+      if (anexarBtn && anexoInput) {
+        anexarBtn.addEventListener('click', function () {
+          if (anexoEnviando) return;
+          anexoInput.click();
+        });
+        anexoInput.addEventListener('change', function () {
+          var file = anexoInput.files && anexoInput.files[0];
+          anexoInput.value = '';
+          if (file) enviarAnexo(file);
+        });
+      }
+
+      if (anexoRemoverBtn) {
+        anexoRemoverBtn.addEventListener('click', function () {
+          limparAnexo();
+          atualizarPreviewAnexo();
+        });
+      }
+
+      // Arrastar um arquivo sobre a área de resposta também anexa — mesmo
+      // caminho do botão. Destaque visual só enquanto arrasta por cima.
+      if (responderEl) {
+        ['dragenter', 'dragover'].forEach(function (evt) {
+          responderEl.addEventListener(evt, function (e) {
+            e.preventDefault();
+            responderEl.classList.add('sup-status-responder--dragover');
+          });
+        });
+        ['dragleave', 'drop'].forEach(function (evt) {
+          responderEl.addEventListener(evt, function (e) {
+            e.preventDefault();
+            responderEl.classList.remove('sup-status-responder--dragover');
+          });
+        });
+        responderEl.addEventListener('drop', function (e) {
+          if (anexoEnviando) return;
+          var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+          if (file) enviarAnexo(file);
+        });
+      }
+
+      var enviarBtnRef = document.getElementById('voe-sup-enviar');
+      var textarea = document.getElementById('voe-sup-resposta');
+      if (enviarBtnRef && textarea) {
+        var enviar = async function () {
+          var texto = textarea.value.trim();
+          if (anexoEnviando) return; // aguarda o upload do anexo terminar
+          if (!texto && !anexoPendente) return;
+          enviarBtnRef.disabled = true;
+          try {
+            var res = await fetch(APP_URL + '/api/public/support-ticket/' + ticket.id + '/messages', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: email,
+                body: texto,
+                attachments: anexoPendente ? [anexoPendente] : [],
+              }),
+            });
+            if (res.ok) {
+              textarea.value = '';
+              limparAnexo();
+              carregarThread(ticket.id, email, true);
+            }
+          } finally {
+            enviarBtnRef.disabled = false;
+          }
+        };
+        enviarBtnRef.addEventListener('click', enviar);
+        textarea.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            enviar();
+          }
+        });
+
+        // Cola uma imagem copiada (print, Ctrl+C de outra janela etc.)
+        // direto no campo de texto com Ctrl+V — sem precisar do botão de
+        // anexar. Um anexo por vez, igual ao fluxo do botão.
+        textarea.addEventListener('paste', function (e) {
+          if (anexoEnviando) return;
+          var items = (e.clipboardData && e.clipboardData.items) || [];
+          for (var i = 0; i < items.length; i++) {
+            if (items[i].kind === 'file' && items[i].type.indexOf('image/') === 0) {
+              var file = items[i].getAsFile();
+              if (file) {
+                e.preventDefault();
+                enviarAnexo(file);
+              }
+              break;
+            }
+          }
+        });
+      }
+
+    }
+
+    async function carregarThread(ticketId, email, semLoading) {
+      if (!semLoading) renderCarregando();
+      try {
+        var res = await fetch(
+          APP_URL + '/api/public/support-ticket/' + ticketId + '?email=' + encodeURIComponent(email),
+        );
+        var json = await res.json().catch(function () { return {}; });
+        if (res.ok && json.ticket) {
+          renderThread(json.ticket, json.messages || [], email);
+          iniciarPolling(ticketId, email);
+        } else if (res.status === 404) {
+          // Resposta clara do backend: esse chamado não existe (mais) pra
+          // esse e-mail. Só AQUI faz sentido esquecer a referência local.
+          limpar();
+          pararPolling();
+          btn.hidden = true;
+          renderErro('Não encontramos esse chamado. Para abrir outro, use a Central de Ajuda.');
+        } else {
+          // Erro do servidor (5xx) ou resposta inesperada — instabilidade
+          // passageira, não prova que o chamado sumiu. Mantém a referência
+          // salva; o próximo clique ou o polling tentam de novo.
+          renderErro('Não foi possível carregar o chamado agora. Tente novamente em instantes.');
+        }
+      } catch (err) {
+        // Falha de rede (sem internet, servidor fora do ar) — mesma lógica:
+        // não apaga nada, só avisa.
+        renderErro('Falha de conexão. Tente novamente.');
+      }
+    }
+
+    function iniciarPolling(ticketId, email) {
+      pararPolling();
+      pollTimer = setInterval(function () {
+        if (panel.hidden) return;
+        carregarThread(ticketId, email, true);
+      }, 10000);
+    }
+    function pararPolling() {
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    }
+
+    async function atualizarBadge() {
+      var s = salvo();
+      if (!s) return; // sem chamado salvo, botão já está escondido por padrão
+      suprimirBubbleVendas();
+      try {
+        var res = await fetch(
+          APP_URL + '/api/public/support-ticket/' + s.ticketId + '?email=' + encodeURIComponent(s.email),
+        );
+        var json = await res.json().catch(function () { return {}; });
+        if (res.status === 404) {
+          // Resposta clara do backend: chamado não existe (mais) pra esse
+          // e-mail. Só aqui esquecemos a referência e escondemos o botão.
+          limpar();
+          pararPolling();
+          btn.hidden = true;
+          return;
+        }
+        if (!res.ok || !json.ticket) {
+          // Erro do servidor (5xx) ou resposta malformada — instabilidade
+          // passageira, não prova que o chamado sumiu. Não mexe na
+          // visibilidade nem apaga a referência; tenta de novo no próximo
+          // ciclo (iniciarBadgeTimer) sem incomodar o cliente.
+          return;
+        }
+        aplicarVisibilidadeBotao(json.ticket.status);
+        var msgs = json.messages || [];
+        var vistoEm = obterVisto(s.ticketId);
+        // Quantidade de verdade, não só "tem novidade" — como numa mensagem
+        // de verdade (WhatsApp, Messenger etc.), pra dar noção do volume.
+        var naoLidas = msgs.filter(function (m) {
+          return m.sender_type === 'agente' && (!vistoEm || m.created_at > vistoEm);
+        }).length;
+        var dot = document.getElementById('voe-sup-status-btn').querySelector('.sup-status-dot');
+        if (dot) {
+          if (naoLidas > 0) {
+            dot.textContent = naoLidas > 9 ? '9+' : String(naoLidas);
+            dot.hidden = false;
+          } else {
+            dot.hidden = true;
+          }
+        }
+      } catch (e) { /* silencioso */ }
+    }
+
+    // ── Abrir/fechar ──────────────────────────────────────────────────────
+    function abrirPainel() {
+      // O botão só fica visível quando salvo() existe (ver
+      // aplicarVisibilidadeBotao) — sem chamado salvo não há como abrir.
+      var s = salvo();
+      if (!s) return;
+      panel.hidden = false;
+      requestAnimationFrame(function () { panel.classList.add('is-open'); });
+      posicionar();
+      window.dispatchEvent(new CustomEvent('voe:support-widget-open'));
+      carregarThread(s.ticketId, s.email);
+    }
+    function fecharPainel() {
+      panel.classList.remove('is-open');
+      pararPolling();
+      setTimeout(function () { panel.hidden = true; }, 200);
+    }
+
+    btn.addEventListener('click', function () {
+      if (panel.hidden) abrirPainel();
+      else fecharPainel();
+    });
+    closeBtn.addEventListener('click', fecharPainel);
+
+    // Um widget não pode ficar aberto em cima do outro: quando o de vendas
+    // abre (widget.voeops.com), fecha este painel se estiver aberto.
+    window.addEventListener('voe:sales-widget-open', function () {
+      if (!panel.hidden) fecharPainel();
+    });
+
+    function iniciarBadgeTimer() {
+      if (badgeTimer) clearInterval(badgeTimer);
+      badgeTimer = setInterval(atualizarBadge, 45000);
+    }
+
+    // Recém-aberto um chamado agora (voeops.com/suporte)? O próprio form
+    // grava STORAGE_KEY antes de disparar isso. Reaparece na hora (sem
+    // esperar o fetch do atualizarBadge) caso o chamado anterior tivesse
+    // escondido o botão por estar fechado.
+    window.addEventListener('voe:chamado-aberto', function () {
+      btn.hidden = false;
+      posicionar();
+      suprimirBubbleVendas();
+      atualizarBadge();
+      iniciarBadgeTimer();
+    });
+
+    // Botão começa escondido (ver atributo hidden no markup) — mas com
+    // chamado salvo, mostra na hora, de forma otimista: já sabemos que existe
+    // uma referência, então não faz sentido esperar a rede pra decidir. O
+    // atualizarBadge() abaixo só CORRIGE isso quando tiver certeza (chamado
+    // fechado ou 404 confirmado) — uma falha passageira de rede não deve
+    // apagar um botão que já devería estar visível.
+    if (salvo()) {
+      btn.hidden = false;
+      suprimirBubbleVendas();
+      atualizarBadge();
+      iniciarBadgeTimer();
+    }
+  })();
+</script>
+
+<style is:global>
+  /* [hidden] é do user-agent (prioridade menor que qualquer regra de autor
+     abaixo, mesmo sem !important) — sem isso, o "display: flex" das duas
+     regras seguintes vence e o elemento nunca fica de fato escondido. */
+  #voe-sup-status-btn[hidden],
+  #voe-sup-status-panel[hidden] {
+    display: none !important;
+  }
+
+  .sup-status-btn {
+    position: fixed;
+    z-index: 999;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-glow), 0 4px 20px rgba(0, 0, 0, 0.18);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+  }
+
+  .sup-status-btn::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 1.5px solid var(--turquesa-25);
+    animation: sup-ring-pulse 2.4s ease-out infinite;
+  }
+
+  @keyframes sup-ring-pulse {
+    0% { transform: scale(0.9); opacity: 0.8; }
+    100% { transform: scale(1.25); opacity: 0; }
+  }
+
+  .sup-status-btn:hover {
+    transform: scale(1.08);
+    box-shadow: var(--shadow-glow), 0 8px 28px rgba(0, 0, 0, 0.24);
+  }
+
+  .sup-status-dot {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--terracotta), var(--terracotta-hover));
+    border: 2.5px solid white;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 10px rgba(224, 66, 42, 0.55);
+    animation: sup-badge-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes sup-badge-in {
+    0% { transform: scale(0.4); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .sup-status-panel {
+    position: fixed;
+    z-index: 998;
+    width: min(400px, calc(100vw - 32px));
+    max-height: 620px;
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+    transform-origin: bottom right;
+    transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .sup-status-panel.is-open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .sup-status-header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px var(--space-lg);
+    border-bottom: 1px solid var(--glass-border);
+    background: linear-gradient(135deg, var(--turquesa-10), transparent 70%);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .sup-status-header-icone {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(0, 197, 180, 0.35);
+  }
+
+  .sup-status-header-title {
+    flex: 1;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  .sup-status-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 6px;
+    display: flex;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .sup-status-close:hover { background: var(--glass-border); color: var(--text-primary); }
+
+  .sup-status-body-wrap {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    min-height: 320px;
+  }
+
+  .sup-status-texture {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.5;
+    background-image: radial-gradient(var(--turquesa-15) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .sup-status-body {
+    position: relative;
+    padding: var(--space-lg);
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sup-status-erro {
+    font-size: 0.825rem;
+    color: var(--terracotta);
+    background: var(--terracotta-10);
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-md);
+  }
+
+  .sup-status-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2xl) 0;
+    flex: 1;
+  }
+
+  .sup-spinner {
+    width: 26px;
+    height: 26px;
+    border: 3px solid var(--glass-border);
+    border-top-color: var(--turquesa);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .sup-spinner--sm {
+    width: 14px;
+    height: 14px;
+    border-width: 2px;
+  }
+
+  .sup-status-ticket-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: var(--space-md);
+    flex-wrap: wrap;
+  }
+
+  .sup-status-pill {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--turquesa);
+    background: var(--turquesa-10);
+    border: 1px solid var(--turquesa-25);
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+  }
+
+  .sup-status-subject {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sup-status-msgs {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: var(--space-md);
+    padding: 2px 2px 4px;
+  }
+
+  .sup-msg-system-wrap { display: flex; justify-content: center; }
+
+  .sup-msg-system {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border-radius: var(--radius-full);
+    padding: 7px 14px;
+    max-width: 95%;
+  }
+  .sup-msg-system svg { color: var(--turquesa); flex-shrink: 0; }
+
+  .sup-msg-row { display: flex; flex-direction: column; max-width: 85%; }
+  .sup-msg-row--cliente { align-self: flex-end; align-items: flex-end; }
+  .sup-msg-row--agente { align-self: flex-start; align-items: flex-start; }
+
+  .sup-msg-bubble {
+    padding: 10px 14px;
+    border-radius: 18px;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  .sup-msg-bubble--cliente {
+    background: var(--gradient-primary);
+    color: white;
+    border-bottom-right-radius: 5px;
+    box-shadow: 0 4px 16px rgba(0, 197, 180, 0.3);
+  }
+  .sup-msg-bubble--agente {
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    border-bottom-left-radius: 5px;
+  }
+
+  .sup-msg-hora {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    padding: 0 3px;
+  }
+
+  .sup-msg-anexos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+
+  .sup-msg-anexo {
+    max-width: 160px;
+    max-height: 160px;
+    border-radius: 12px;
+    object-fit: cover;
+    display: block;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .sup-status-anexo-preview {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    border-radius: var(--radius-md);
+    background: var(--turquesa-10);
+    color: var(--turquesa);
+    font-size: 0.78rem;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .sup-status-anexo-thumb {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-card);
+  }
+
+  .sup-status-anexo-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .sup-status-anexo-nome {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-primary);
+  }
+
+  .sup-status-anexo-spinner {
+    flex-shrink: 0;
+    display: flex;
+  }
+
+  .sup-status-anexo-erro {
+    font-size: 0.78rem;
+    color: var(--terracotta);
+    background: var(--terracotta-10);
+    padding: 6px 10px;
+    margin-bottom: 8px;
+    border-radius: var(--radius-md);
+  }
+
+  .sup-status-anexo-remover {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: 50%;
+    background: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .sup-status-anexo-remover:hover { background: var(--glass-border); color: var(--text-primary); }
+
+  .sup-status-responder {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    border-top: 1px solid var(--glass-border);
+    padding-top: var(--space-md);
+    margin-top: auto;
+    border-radius: var(--radius-md);
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .sup-status-responder--dragover {
+    background: var(--turquesa-10);
+    box-shadow: inset 0 0 0 2px var(--turquesa-25);
+  }
+
+  .sup-status-anexar {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--glass-border);
+    cursor: pointer;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+  }
+  .sup-status-anexar:hover:not(:disabled) { border-color: var(--turquesa); color: var(--turquesa); background: var(--turquesa-10); }
+  .sup-status-anexar:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .sup-status-textarea {
+    flex: 1;
+    resize: none;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    font-family: inherit;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  }
+  .sup-status-textarea:focus {
+    outline: none;
+    border-color: var(--turquesa);
+    background: var(--bg-card);
+    box-shadow: 0 0 0 3px var(--turquesa-10);
+  }
+
+  .sup-status-enviar {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    background: var(--gradient-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(0, 197, 180, 0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .sup-status-enviar:hover:not(:disabled) { transform: scale(1.06); box-shadow: var(--shadow-glow); }
+  .sup-status-enviar:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .sup-status-encerrado {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--glass-border);
+    margin-top: auto;
+  }
+
+  @media (max-width: 480px) {
+    .sup-status-panel { max-height: 72vh; }
+  }
+
+  /* Tamanho do botão é sempre calculado em JS (posicionar()), pra bater
+     exatamente com o botão do widget de vendas — nada de tamanho fixo aqui. */
+</style>

@@ -1,0 +1,153 @@
+---
+// src/pages/ajuda/[categoria]/index.astro
+// Listagem de artigos de uma categoria.
+import Base from '../../../layouts/Base.astro';
+import Header from '../../../components/ui/Header.astro';
+import Footer from '../../../components/ui/Footer.astro';
+import { getArtigosPorCategoria, urlDoArtigo } from '../../../lib/ajuda';
+
+export async function getStaticPaths() {
+  const categorias = await getArtigosPorCategoria();
+  return categorias.map((cat) => ({
+    params: { categoria: cat.id },
+    props: { cat },
+  }));
+}
+
+const { cat } = Astro.props;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: `${cat.nome} — Central de Ajuda Voe`,
+  description: cat.descricao,
+  url: `https://voeops.com/ajuda/${cat.id}/`,
+};
+---
+
+<Base
+  title={`${cat.nome} — Central de Ajuda Voe`}
+  description={cat.descricao}
+  canonical={`https://voeops.com/ajuda/${cat.id}/`}
+  jsonLd={jsonLd}
+>
+  <Header />
+
+  <section class="cat-hero">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Navegação estrutural">
+        <a href="/ajuda">Central de Ajuda</a>
+        <span aria-hidden="true">/</span>
+        <span>{cat.nome}</span>
+      </nav>
+
+      <h1 class="cat-titulo">{cat.nome}</h1>
+      <p class="cat-desc">{cat.descricao}</p>
+    </div>
+  </section>
+
+  <section class="cat-section">
+    <div class="container">
+      <ul class="cat-lista">
+        {cat.artigos.map((artigo) => (
+          <li>
+            <a href={urlDoArtigo(artigo)}>
+              <span class="cat-artigo-titulo">{artigo.data.titulo}</span>
+              <span class="cat-artigo-desc">{artigo.data.descricao}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      <div class="cat-rodape">
+        <a href="/ajuda" class="cat-voltar">← Todas as categorias</a>
+        <a href="/suporte" class="btn btn-primary">Falar com o suporte</a>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</Base>
+
+<style>
+  .cat-hero { padding: 140px 0 32px; }
+
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: var(--space-md);
+  }
+
+  .breadcrumb a { color: var(--turquesa); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+
+  .cat-titulo {
+    font-family: var(--font-display);
+    font-size: clamp(1.9rem, 4vw, 2.6rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+
+  .cat-desc { color: var(--text-secondary); font-size: 1.05rem; }
+
+  .cat-section { padding: var(--space-xl) 0 var(--space-4xl); }
+
+  .cat-lista {
+    list-style: none;
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .cat-lista li + li { border-top: 1px solid var(--glass-border); }
+
+  .cat-lista a {
+    display: block;
+    padding: 20px 24px;
+    text-decoration: none;
+    transition: background 0.15s ease;
+  }
+
+  .cat-lista a:hover { background: var(--bg-secondary); }
+
+  .cat-artigo-titulo {
+    display: block;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 3px;
+  }
+
+  .cat-artigo-desc {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .cat-rodape {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+    margin-top: var(--space-2xl);
+  }
+
+  .cat-voltar {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.925rem;
+  }
+
+  .cat-voltar:hover { color: var(--turquesa); }
+
+  @media (max-width: 768px) {
+    .cat-hero { padding: 120px 0 24px; }
+    .cat-lista a { padding: 16px 18px; }
+  }
+</style>
