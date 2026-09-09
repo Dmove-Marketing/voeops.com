@@ -67,6 +67,12 @@ const APP_URL =
 
     var pollTimer = null;
     var badgeTimer = null;
+    // Assinatura da última renderização do thread (status + última mensagem).
+    // O polling (a cada 10s) só re-renderiza quando isso muda — sem essa
+    // checagem, todo ciclo recria os <img>/<video> do zero e o navegador
+    // recarrega os anexos do zero, dando a impressão de imagem que nunca
+    // termina de carregar (ela é interrompida e recomeça a cada 10s).
+    var ultimaAssinaturaThread = null;
     // Anexo já enviado ao Storage, aguardando ser incluído na próxima
     // mensagem (o upload acontece na escolha do arquivo, não no envio).
     var anexoPendente = null;
@@ -501,6 +507,11 @@ const APP_URL =
 
     }
 
+    function assinaturaThread(ticket, mensagens) {
+      var ultima = mensagens.length ? mensagens[mensagens.length - 1] : null;
+      return ticket.status + '|' + mensagens.length + '|' + (ultima ? ultima.id + ':' + ultima.created_at : '');
+    }
+
     async function carregarThread(ticketId, email, semLoading) {
       if (!semLoading) renderCarregando();
       try {
@@ -509,7 +520,15 @@ const APP_URL =
         );
         var json = await res.json().catch(function () { return {}; });
         if (res.ok && json.ticket) {
-          renderThread(json.ticket, json.messages || [], email);
+          var mensagens = json.messages || [];
+          var assinatura = assinaturaThread(json.ticket, mensagens);
+          // Nada mudou desde a última renderização: pula o re-render no
+          // ciclo silencioso do polling, senão os anexos (imagem/vídeo)
+          // recarregam do zero a cada 10s sem necessidade.
+          if (!(semLoading && assinatura === ultimaAssinaturaThread)) {
+            ultimaAssinaturaThread = assinatura;
+            renderThread(json.ticket, mensagens, email);
+          }
           iniciarPolling(ticketId, email);
         } else if (res.status === 404) {
           // Resposta clara do backend: esse chamado não existe (mais) pra
@@ -567,6 +586,12 @@ const APP_URL =
           return;
         }
         aplicarVisibilidadeBotao(json.ticket.status);
+        if (json.ticket.status === 'fechado') {
+          // Confirmado fechado — esquece a referência, senão toda visita
+          // futura repete essa checagem de rede pro mesmo chamado encerrado.
+          limpar();
+          pararPolling();
+        }
         var msgs = json.messages || [];
         var vistoEm = obterVisto(s.ticketId);
         // Quantidade de verdade, não só "tem novidade" — como numa mensagem
@@ -633,15 +658,14 @@ const APP_URL =
       iniciarBadgeTimer();
     });
 
-    // Botão começa escondido (ver atributo hidden no markup) — mas com
-    // chamado salvo, mostra na hora, de forma otimista: já sabemos que existe
-    // uma referência, então não faz sentido esperar a rede pra decidir. O
-    // atualizarBadge() abaixo só CORRIGE isso quando tiver certeza (chamado
-    // fechado ou 404 confirmado) — uma falha passageira de rede não deve
-    // apagar um botão que já devería estar visível.
+    // Botão começa escondido (ver atributo hidden no markup) e SÓ aparece
+    // depois que atualizarBadge() confirmar com o servidor que o chamado
+    // salvo ainda está aberto (aplicarVisibilidadeBotao). Nada de mostrar
+    // otimista aqui: uma referência salva pode ser de um chamado já
+    // encerrado há dias (o "fechado" não limpa o localStorage — só o 404
+    // limpa), e mostrar antes de confirmar dava um flash de alguns segundos
+    // (aparece, depois some) toda vez que a página carregava.
     if (salvo()) {
-      btn.hidden = false;
-      suprimirBubbleVendas();
       atualizarBadge();
       iniciarBadgeTimer();
     }
@@ -650,10 +674,17 @@ const APP_URL =
 
 <style is:global>
   /* [hidden] é do user-agent (prioridade menor que qualquer regra de autor
-     abaixo, mesmo sem !important) — sem isso, o "display: flex" das duas
-     regras seguintes vence e o elemento nunca fica de fato escondido. */
+     abaixo, mesmo sem !important) — sem isso, o "display: flex" das regras
+     seguintes vence e o elemento nunca fica de fato escondido. Mesmo bug das
+     duas primeiras se repetia no chip de anexo: com `hidden` no elemento mas
+     "display: flex" sempre vencendo, o chip (e o spinner de upload dentro
+     dele) ficava visível e girando pra sempre mesmo sem nenhum anexo em
+     andamento. */
   #voe-sup-status-btn[hidden],
-  #voe-sup-status-panel[hidden] {
+  #voe-sup-status-panel[hidden],
+  .sup-status-anexo-preview[hidden],
+  .sup-status-anexo-spinner[hidden],
+  .sup-status-anexo-remover[hidden] {
     display: none !important;
   }
 
