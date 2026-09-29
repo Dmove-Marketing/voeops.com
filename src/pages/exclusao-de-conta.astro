@@ -1,0 +1,234 @@
+---
+// src/pages/exclusao-de-conta.astro
+// Exclusão de conta e de dados — link público exigido pelo Google Play
+// (Segurança dos dados → exclusão de conta) para o app VOE. O processo por
+// trás é manual: o pedido chega por e-mail ou pelo formulário de Suporte.
+import Base from '../layouts/Base.astro';
+import Header from '../components/ui/Header.astro';
+import Footer from '../components/ui/Footer.astro';
+
+const lastUpdate = '29 de setembro de 2026';
+---
+
+<Base
+  title="Exclusão de conta e de dados — Voe"
+  description="Como pedir a exclusão da sua conta e dos seus dados pessoais na Voe, incluindo o aplicativo VOE para Android: quais dados são excluídos, quais são mantidos e por quanto tempo."
+  noIndex={false}
+>
+  <Header />
+
+  <!-- HERO -->
+  <section class="legal-hero">
+    <div class="container">
+      <div class="eyebrow" data-animate="fade-up">Privacidade</div>
+      <h1 class="legal-hero-title" data-animate="fade-up" data-delay="0.1">
+        Exclusão de <em>conta</em>
+      </h1>
+      <p class="legal-hero-sub" data-animate="fade-up" data-delay="0.2">
+        Como pedir a exclusão da sua conta e dos seus dados. Última atualização: {lastUpdate}.
+      </p>
+    </div>
+  </section>
+
+  <!-- CONTEÚDO -->
+  <section class="legal-section">
+    <div class="container">
+      <article class="legal-doc">
+
+        <p class="legal-intro">
+          Esta página explica como pedir a exclusão da sua conta na plataforma
+          <strong>Voe</strong> e no aplicativo <strong>VOE</strong> para Android,
+          oferecidos por <strong>Voe Ops Consultoria em Tecnologia da Informação LTDA</strong>,
+          CNPJ 66.614.730/0001-90. A conta é a mesma no site (app.voeops.com) e no
+          aplicativo, então um único pedido vale para os dois.
+        </p>
+
+        <h2>1. Como pedir a exclusão</h2>
+        <p>Escolha um dos canais abaixo:</p>
+        <ul class="legal-list">
+          <li>
+            <strong>Por e-mail:</strong> escreva para
+            <a href="mailto:contato@voeops.com?subject=Exclus%C3%A3o%20de%20conta">contato@voeops.com</a>
+            com o assunto <strong>"Exclusão de conta"</strong>, a partir do e-mail
+            cadastrado na sua conta.
+          </li>
+          <li>
+            <strong>Pelo formulário de Suporte:</strong> em <a href="/suporte">voeops.com/suporte</a>,
+            informe o e-mail da sua conta, escolha o assunto <strong>"Outro assunto"</strong>
+            e escreva "Exclusão de conta" na mensagem.
+          </li>
+        </ul>
+        <p>No pedido, informe:</p>
+        <ul class="legal-list">
+          <li>seu nome;</li>
+          <li>o e-mail usado para entrar na Voe;</li>
+          <li>o nome da empresa (workspace) em que você usa a Voe;</li>
+          <li>se quer excluir só o seu usuário ou, no caso do titular da assinatura, a conta inteira da empresa.</li>
+        </ul>
+        <p>
+          Para proteger a sua conta, podemos pedir uma confirmação de identidade antes de
+          excluir. Avisamos por e-mail quando a exclusão for concluída.
+        </p>
+
+        <h2>2. O que é excluído</h2>
+        <p>Ao excluir o seu usuário, apagamos:</p>
+        <ul class="legal-list">
+          <li>seus dados de cadastro: nome, e-mail, telefone e foto de perfil;</li>
+          <li>seu acesso à plataforma e ao aplicativo;</li>
+          <li>os identificadores de notificação (tokens de push) dos seus aparelhos;</li>
+          <li>a conexão com o Google Agenda, se estiver ativa — revogamos a autorização junto ao Google e apagamos os tokens;</li>
+          <li>suas preferências de notificação e de uso.</li>
+        </ul>
+
+        <h2>3. O que é mantido, e por quanto tempo</h2>
+        <ul class="legal-list">
+          <li>
+            <strong>Dados da empresa em que você trabalha:</strong> contatos, leads,
+            conversas de WhatsApp, oportunidades e atividades pertencem à empresa que
+            contrata a Voe, que é a controladora desses dados (veja a
+            <a href="/politica-de-privacidade">Política de Privacidade</a>, seção 2).
+            Eles continuam com a empresa após a exclusão do seu usuário. Para excluí-los,
+            o pedido deve ser feito pela empresa titular da assinatura.
+          </li>
+          <li>
+            <strong>Conta inteira da empresa (titular da assinatura):</strong> os dados da
+            conta, dos contatos, das conversas e das oportunidades são excluídos ou
+            anonimizados em até <strong>90 dias</strong> após o cancelamento.
+          </li>
+          <li>
+            <strong>Dados fiscais e financeiros:</strong> mantidos por <strong>5 anos</strong>,
+            por obrigação legal.
+          </li>
+          <li>
+            <strong>Registros de acesso (logs):</strong> mantidos por <strong>6 meses</strong>,
+            conforme o Marco Civil da Internet.
+          </li>
+        </ul>
+
+        <h2>4. Outros direitos</h2>
+        <p>
+          Além da exclusão, você pode pedir acesso, correção, portabilidade e as demais
+          solicitações previstas na LGPD pelos mesmos canais. Os detalhes estão na
+          <a href="/politica-de-privacidade">Política de Privacidade</a>.
+        </p>
+
+      </article>
+    </div>
+  </section>
+
+  <Footer />
+
+  <script>
+    import { initScrollAnimations } from '../scripts/animations';
+    function init() { initScrollAnimations(); }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</Base>
+
+<style>
+  .legal-hero {
+    padding: 140px 0 50px;
+    background:
+      radial-gradient(900px 500px at 78% -10%, rgba(0, 197, 180, 0.18), transparent 60%),
+      linear-gradient(180deg, #1f3046 0%, #243345 50%, #2a3b50 100%);
+    color: var(--off-white);
+  }
+
+  .legal-hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 5.5vw, 4.2rem);
+    line-height: 1.0;
+    letter-spacing: -0.04em;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: var(--space-md);
+  }
+
+  .legal-hero-title em {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--turquesa);
+  }
+
+  .legal-hero-sub {
+    font-size: 1.05rem;
+    color: rgba(237, 239, 234, 0.72);
+    max-width: 620px;
+  }
+
+  .legal-section {
+    background: var(--off-white);
+    padding: 70px 0 110px;
+  }
+
+  .legal-doc {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .legal-intro {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--carvao-light);
+    padding-bottom: 28px;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .legal-doc h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--ardosia);
+    letter-spacing: -0.01em;
+    margin: 40px 0 14px;
+  }
+
+  .legal-doc p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--carvao-light);
+    margin-bottom: 14px;
+  }
+
+  .legal-doc a {
+    color: var(--turquesa);
+    text-decoration: underline;
+  }
+
+  .legal-doc strong {
+    color: var(--ardosia);
+  }
+
+  .legal-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 4px 0 18px;
+  }
+
+  .legal-list li {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--carvao-light);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .legal-list li::before {
+    content: "·";
+    position: absolute;
+    left: 2px;
+    color: var(--turquesa);
+    font-weight: 700;
+  }
+
+  @media (max-width: 768px) {
+    .legal-hero { padding: 120px 0 40px; }
+  }
+</style>
