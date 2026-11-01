@@ -173,6 +173,12 @@ const defaultJsonLd = {
         waitForLauncher(function (el) {
           launcher = el;
           attachLauncherListener(launcher);
+
+          // Mantém só o ícone: o balão de prévia do widget cobre o conteúdo
+          var hideBubble = document.createElement('style');
+          hideBubble.textContent = '.bubble{display:none!important}';
+          el.getRootNode().appendChild(hideBubble);
+
           if (pendingOpen && !widgetOpen) {
             pendingOpen = false;
             widgetOpen = true;

@@ -1,11 +1,13 @@
 ---
 import DotGrid from './DotGrid.astro';
+import PlansToggle from './PlansToggle.astro';
 
 interface Props {
   showLink?: boolean;
+  showHead?: boolean;
 }
 
-const { showLink = false } = Astro.props;
+const { showLink = false, showHead = true } = Astro.props;
 
 const plans = [
   {
@@ -15,11 +17,11 @@ const plans = [
     annual: { price: '330', extra: '110' },
     users: '3 usuários inclusos',
     features: [
+      'Painel de visão geral',
       'Inbox WhatsApp nativo',
       'WhatsApp API Oficial + API Voe',
       'Funil de vendas',
       'Negociações e contatos ilimitados',
-      'Relatórios básicos de vendas',
       'Distribuição inteligente de leads',
       '1 GB de mídia por usuário',
     ],
@@ -29,30 +31,30 @@ const plans = [
   },
   {
     name: 'Growth',
+    featured: true,
+    badge: 'Mais escolhido',
     desc: 'Para quem quer o vendedor focado em vender, não em fazer follow-up manual e controlar agenda na mão.',
     monthly: { price: '687', extra: '229' },
     annual: { price: '585', extra: '195' },
     users: '3 usuários inclusos',
     features: [
       'Tudo do Starter',
+      'Agendamento de envio de WhatsApp',
       'Módulo de agenda',
       'Múltiplos funis simultâneos',
-      'Agendamento de envio de WhatsApp',
       'Automações com ações internas (até 3)',
-      'Relatórios completos de funil',
+      'Insights: relatórios avançados',
       '3 GB de mídia por usuário',
     ],
     ctaLabel: 'Agendar demonstração',
-    ctaStyle: 'outline',
+    ctaStyle: 'solid',
     ctaIntent: 'demo',
   },
   {
     name: 'Scale',
-    featured: true,
-    badge: 'Mais escolhido',
     desc: 'Para quem quer automação completa, campanhas ativas, segmentação inteligente e visão total da operação.',
-    monthly: { price: '1.686', extra: '329' },
-    annual: { price: '1.434', extra: '280' },
+    monthly: { price: '1.686', extra: '259' },
+    annual: { price: '1.434', extra: '220' },
     users: '3 usuários inclusos',
     features: [
       'Tudo do Starter e Growth',
@@ -60,11 +62,11 @@ const plans = [
       'Campanhas em massa (até 10 mil/mês)',
       'Automações (até 10 ativas)',
       'Botão de WhatsApp e formulários no site',
-      'Relatórios avançados de marketing',
+      'Relatório executivo com IA',
       '6 GB de mídia por usuário',
     ],
     ctaLabel: 'Agendar demonstração',
-    ctaStyle: 'solid',
+    ctaStyle: 'outline',
     ctaIntent: 'demo',
   },
   {
@@ -88,20 +90,19 @@ const plans = [
 ];
 ---
 
-<section id="planos" class="planos-section">
+<section id={showHead ? 'planos' : undefined} class:list={['planos-section', { 'planos-section--compact': !showHead }]}>
   <DotGrid />
   <div class="container">
-    <div class="planos-head">
-      <div>
-        <div class="eyebrow eyebrow--ardosia eyebrow--terracotta">Planos e preços</div>
-        <h2 class="section-title">Planos que crescem<br>com o seu <em>time</em></h2>
-        <p class="section-sub">Todos os planos incluem 3 usuários. Anual com 15% de desconto.</p>
+    {showHead && (
+      <div class="planos-head">
+        <div>
+          <div class="eyebrow eyebrow--ardosia eyebrow--terracotta">Planos e preços</div>
+          <h2 class="section-title">Planos que crescem<br>com o seu <em>time</em></h2>
+          <p class="section-sub">Todos os planos incluem 3 usuários. Anual com 15% de desconto.</p>
+        </div>
+        <PlansToggle />
       </div>
-      <div class="plans-toggle" role="tablist" aria-label="Ciclo de cobrança">
-        <button type="button" class="plans-toggle-btn" data-cycle="monthly" role="tab" aria-selected="false">Mensal</button>
-        <button type="button" class="plans-toggle-btn is-active" data-cycle="annual" role="tab" aria-selected="true">Anual <span class="plans-toggle-tag">−15%</span></button>
-      </div>
-    </div>
+    )}
 
     <div class="planos-grid is-annual">
       {plans.map((plan) => (
@@ -118,13 +119,19 @@ const plans = [
                   <span class="price-val-consult">Sob consulta</span>
                 </div>
                 <div class="price-sub">{plan.users}</div>
+                <div class="price-plus-row price-plus-row--spacer" aria-hidden="true">
+                  <span class="price-val-sec">&nbsp;</span>
+                </div>
               </div>
               <div class="plan-price-block" data-cycle="annual">
-                <div class="price-label price-label--discount">Anual</div>
+                <div class="price-label price-label--discount">Anual −15%</div>
                 <div class="price-row">
                   <span class="price-val-consult">Sob consulta</span>
                 </div>
                 <div class="price-sub">{plan.users}</div>
+                <div class="price-plus-row price-plus-row--spacer" aria-hidden="true">
+                  <span class="price-val-sec">&nbsp;</span>
+                </div>
               </div>
             </>
           ) : (
@@ -186,6 +193,7 @@ const plans = [
 
   /* ——— Section: Pricing ——— */
   .planos-section { background: var(--bg-secondary); padding: 110px 0; position: relative; overflow: hidden; }
+  .planos-section--compact { padding-top: 64px; }
   .planos-section > .container { position: relative; z-index: 1; }
   
   .dot-grid-container {
@@ -219,28 +227,6 @@ const plans = [
   .eyebrow::before { background: var(--terracotta); }
 
   .planos-head { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 32px; margin-bottom: 56px; }
-
-  /* Cycle toggle (Mensal / Anual) */
-  .plans-toggle {
-    display: inline-flex; padding: 4px; gap: 2px;
-    background: white; border: 1px solid var(--line); border-radius: 100px;
-  }
-  .plans-toggle-btn {
-    padding: 9px 22px; border: none; background: transparent; cursor: pointer;
-    font-family: var(--font-display); font-size: 0.844rem; font-weight: 500; color: var(--text-secondary);
-    border-radius: 100px; transition: background 0.18s, color 0.18s; white-space: nowrap;
-    display: inline-flex; align-items: center; gap: 6px;
-  }
-  .plans-toggle-btn:hover { color: var(--ardosia); }
-  .plans-toggle-btn.is-active {
-    background: var(--ardosia); color: white; font-weight: 600;
-    box-shadow: 0 2px 6px rgba(48,69,91,0.18);
-  }
-  .plans-toggle-tag {
-    font-family: var(--font-mono); font-size: 0.625rem; font-weight: 500;
-    color: var(--turquesa); letter-spacing: 0.04em;
-  }
-  .plans-toggle-btn.is-active .plans-toggle-tag { color: #9ef0e6; }
 
   /* Plans grid */
   .planos-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
@@ -291,11 +277,11 @@ const plans = [
   .price-cur { font-size: 0.875rem; font-weight: 500; color: var(--text-secondary); }
   .price-val {
     font-family: var(--font-display); font-size: 2.25rem; font-weight: 600;
-    color: var(--ardosia); letter-spacing: -0.025em;
+    color: var(--ardosia); letter-spacing: -0.025em; line-height: 2.75rem;
   }
   .price-val-consult {
     font-family: var(--font-display); font-size: 1.625rem; font-weight: 600;
-    color: var(--ardosia); letter-spacing: -0.02em;
+    color: var(--ardosia); letter-spacing: -0.02em; line-height: 2.75rem;
   }
   .price-period { font-size: 0.8125rem; color: var(--text-secondary); }
   .price-sub { font-size: 0.781rem; color: var(--text-secondary); margin-top: 4px; font-family: var(--font-mono); }
@@ -304,6 +290,7 @@ const plans = [
     padding-top: 10px; margin-top: 10px;
     border-top: 1px dashed var(--line);
   }
+  .price-plus-row--spacer { visibility: hidden; }
   .price-plus-sign {
     font-family: var(--font-display); font-weight: 600;
     color: var(--turquesa); font-size: 1rem;
@@ -349,6 +336,7 @@ const plans = [
   @media (max-width: 600px) {
     .planos-grid { grid-template-columns: 1fr; }
     .plan-desc { min-height: auto; }
+    .price-plus-row--spacer { display: none; }
   }
 </style>
 
@@ -358,8 +346,8 @@ const plans = [
     if (!section) return;
 
     const grid = section.querySelector('.planos-grid') as HTMLElement;
-    const btnMonthly = section.querySelector('.plans-toggle-btn[data-cycle="monthly"]') as HTMLButtonElement;
-    const btnAnnual = section.querySelector('.plans-toggle-btn[data-cycle="annual"]') as HTMLButtonElement;
+    const btnMonthly = document.querySelector('.plans-toggle-btn[data-cycle="monthly"]') as HTMLButtonElement;
+    const btnAnnual = document.querySelector('.plans-toggle-btn[data-cycle="annual"]') as HTMLButtonElement;
 
     if (!grid || !btnMonthly || !btnAnnual) return;
 

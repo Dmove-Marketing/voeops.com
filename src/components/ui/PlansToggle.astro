@@ -1,0 +1,47 @@
+---
+// PlansToggle.astro — Cycle toggle (Mensal / Anual), controlled by PricingPlans
+interface Props {
+  dark?: boolean;
+}
+
+const { dark = false } = Astro.props;
+---
+
+<div class:list={['plans-toggle', { 'plans-toggle--dark': dark }]} role="tablist" aria-label="Ciclo de cobrança">
+  <button type="button" class="plans-toggle-btn" data-cycle="monthly" role="tab" aria-selected="false">Mensal</button>
+  <button type="button" class="plans-toggle-btn is-active" data-cycle="annual" role="tab" aria-selected="true">Anual <span class="plans-toggle-tag">{dark ? 'Economize 15%' : '−15%'}</span></button>
+</div>
+
+<style>
+  .plans-toggle {
+    display: inline-flex; padding: 4px; gap: 2px;
+    background: white; border: 1px solid rgba(55, 64, 73, 0.12); border-radius: 100px;
+  }
+  .plans-toggle-btn {
+    padding: 9px 22px; border: none; background: transparent; cursor: pointer;
+    font-family: var(--font-display); font-size: 0.844rem; font-weight: 500; color: var(--text-secondary);
+    border-radius: 100px; transition: background 0.18s, color 0.18s; white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .plans-toggle-btn:hover { color: var(--ardosia); }
+  .plans-toggle-btn.is-active {
+    background: var(--ardosia); color: white; font-weight: 600;
+    box-shadow: 0 2px 6px rgba(48,69,91,0.18);
+  }
+  .plans-toggle-tag {
+    font-family: var(--font-mono); font-size: 0.625rem; font-weight: 500;
+    color: var(--turquesa); letter-spacing: 0.04em;
+  }
+  .plans-toggle-btn.is-active .plans-toggle-tag { color: #9ef0e6; }
+
+  .plans-toggle--dark {
+    background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.14);
+  }
+  .plans-toggle--dark .plans-toggle-btn { color: rgba(237, 239, 234, 0.72); }
+  .plans-toggle--dark .plans-toggle-btn:hover { color: #fff; }
+  .plans-toggle--dark .plans-toggle-btn.is-active {
+    background: white; color: var(--ardosia); box-shadow: none;
+  }
+  .plans-toggle--dark .plans-toggle-tag { font-size: 0.75rem; font-weight: 600; letter-spacing: 0; }
+  .plans-toggle--dark .plans-toggle-btn.is-active .plans-toggle-tag { color: #00645c; }
+</style>

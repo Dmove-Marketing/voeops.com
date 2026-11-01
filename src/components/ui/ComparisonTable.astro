@@ -13,12 +13,12 @@ const categories = [
       ['WhatsApp API Voe (QR Code)', check, check, check, check],
       [`Inbox Instagram Direct [${soon}]`, check, check, check, check],
       ['Armazenamento de mídia por usuário', '1 GB', '3 GB', '6 GB', 'Personalizado'],
-      [`Ferramenta de limpeza de mídia [${soon}]`, check, check, check, check],
+      ['Ferramenta de limpeza de mídia', check, check, check, check],
       ['Central de Modelos de mensagem', check, check, check, check],
       ['Painel do Lead na conversa', check, check, check, check],
       ['Fila de Atendimento', check, check, check, check],
       ['Supervisão de Conversas', check, check, check, check],
-      [`Relatórios de atendimento [${soon}]`, check, check, check, check],
+      ['Relatórios de atendimento', check, check, check, check],
     ],
   },
   {
@@ -39,10 +39,10 @@ const categories = [
       [`Gerador de Propostas [${soon}]`, dash, check, check, check],
       ['Anotações e linha do tempo da negociação', check, check, check, check],
       ['Agendamento de envio de WhatsApp', dash, check, check, check],
-      [`E-mail direto na negociação [${soon}]`, check, check, check, check],
+      ['E-mail direto na negociação', check, check, check, check],
       [`Ligações VOIP [${soon}]`, check, check, check, check],
       [`Gravação de ligações VOIP [${soon}]`, check, check, check, check],
-      [`Importar / exportar base de leads [${soon}]`, check, check, check, check],
+      ['Importar / exportar base de leads', check, check, check, check],
       ['Conformidade com a LGPD', check, check, check, check],
     ],
   },
@@ -51,7 +51,8 @@ const categories = [
     features: [
       ['Agenda do usuário', dash, check, check, check],
       ['Agenda de datas de eventos (setor de eventos)', dash, check, check, check],
-      [`Integração com Google e Apple Calendar [${soon}]`, dash, check, check, check],
+      ['Integração com Google Calendar', dash, check, check, check],
+      [`Integração com Apple Calendar [${soon}]`, dash, check, check, check],
     ],
   },
   {
@@ -61,7 +62,7 @@ const categories = [
       ['Criação de audiências para automações', dash, dash, check, check],
       ['Audiências estáticas', dash, dash, '30', 'Personalizado'],
       ['Audiências dinâmicas', dash, dash, '10', 'Personalizado'],
-      [`Lead Scoring [${soon}]`, dash, dash, check, check],
+      ['Lead Scoring', dash, dash, check, check],
     ],
   },
   {
@@ -69,11 +70,11 @@ const categories = [
     features: [
       ['Criação e aprovação de mensagens WhatsApp', check, check, check, check],
       ['Disparos em massa via WhatsApp (API Oficial)', dash, dash, '10 mil/mês', 'Personalizado'],
-      [`Disparos em massa via e-mail [${soon}]`, dash, dash, '10 mil/mês', 'Personalizado'],
+      ['Disparos em massa via e-mail', dash, dash, '10 mil/mês', 'Personalizado'],
       [`Status de envio em tempo real [${soon}]`, dash, dash, check, check],
       [`Análise de performance de disparos [${soon}]`, dash, dash, check, check],
       [`Botão de WhatsApp no site [${soon}]`, dash, dash, check, check],
-      [`Pop-ups [${soon}]`, dash, dash, check, check],
+      ['Pop-ups', dash, dash, check, check],
       [`Criador de formulários [${soon}]`, dash, dash, check, check],
     ],
   },
@@ -87,11 +88,17 @@ const categories = [
     ],
   },
   {
+    name: 'Inteligência artificial',
+    features: [
+      ['Créditos IA do plano (tokens/mês)', '500', '1.000', '2.000', 'Personalizado'],
+    ],
+  },
+  {
     name: 'Relatórios',
     features: [
-      [`Relatórios básicos de vendas [${soon}]`, check, check, check, check],
-      [`Relatórios completos de funil [${soon}]`, dash, check, check, check],
-      [`Relatórios avançados de marketing e vendas [${soon}]`, dash, dash, check, check],
+      ['Painel de visão geral', check, check, check, check],
+      ['Insights: relatórios avançados', dash, check, check, check],
+      ['Relatório executivo com IA', dash, dash, check, check],
     ],
   },
   {
@@ -136,9 +143,9 @@ function renderFeatureName(name: string) {
             <tr>
               <th class="th-corner"></th>
               {plans.map((p, index) => (
-                <th class={index === 2 ? "th-featured" : ""}>
+                <th class={index === 1 ? "th-featured" : ""}>
                   <div class="th-content-wrap">
-                    {index === 2 && <span class="badge-popular">Mais escolhido</span>}
+                    {index === 1 && <span class="badge-popular">Mais escolhido</span>}
                     <div class="plan-col-head">
                       <span class="plan-col-dot"></span>
                       <span class="plan-col-name">{p}</span>
@@ -156,15 +163,15 @@ function renderFeatureName(name: string) {
                     <span class="group-row-label">{cat.name}</span>
                   </td>
                   <td class="group-cell"></td>
-                  <td class="group-cell"></td>
                   <td class="group-cell group-cell-featured"></td>
+                  <td class="group-cell"></td>
                   <td class="group-cell"></td>
                 </tr>
                 {cat.features.map(row => (
                   <tr class="feat-row">
                     <td class="feat-name" set:html={renderFeatureName(row[0] as string)} />
                     {[1,2,3,4].map(i => (
-                      <td class={i === 3 ? "feat-cell feat-cell-featured" : "feat-cell"}>
+                      <td class={i === 2 ? "feat-cell feat-cell-featured" : "feat-cell"}>
                         {row[i] === check ? (
                           <span class="ic-yes">✓</span>
                         ) : row[i] === dash ? (
@@ -269,7 +276,7 @@ function renderFeatureName(name: string) {
     justify-content: center;
   }
 
-  /* DESTAQUE DO PLANO SCALE - APENAS NAS LINHAS DE FEATURES (MANTÉM BADGE NO HEADER) */
+  /* DESTAQUE DO PLANO GROWTH - APENAS NAS LINHAS DE FEATURES (MANTÉM BADGE NO HEADER) */
   .comp-table tbody tr td.feat-cell-featured + td {
     border-left: none !important;
   }

@@ -4,6 +4,7 @@ import Header from '../components/ui/Header.astro';
 import Footer from '../components/ui/Footer.astro';
 import AnchorNav from '../components/ui/AnchorNav.astro';
 import PricingPlans from '../components/ui/PricingPlans.astro';
+import PlansToggle from '../components/ui/PlansToggle.astro';
 import AIAddons from '../components/ui/AIAddons.astro';
 import PricingSimulator from '../components/ui/PricingSimulator.astro';
 import ComparisonTable from '../components/ui/ComparisonTable.astro';
@@ -18,16 +19,19 @@ import DotGrid from '../components/ui/DotGrid.astro';
   <AnchorNav />
 
   <!-- HERO PLANOS -->
-  <section class="planos-hero">
+  <section class="planos-hero" id="planos">
     <div class="container">
       <div class="eyebrow" data-animate="fade-up">Planos Voe</div>
-      <h1 class="planos-hero-title" data-animate="fade-up" data-delay="0.1">Escolha o plano <em>ideal</em></h1>
-      <p class="planos-hero-sub" data-animate="fade-up" data-delay="0.2">O plano certo para cada momento da sua operação.</p>
+      <h1 class="planos-hero-title" data-animate="fade-up" data-delay="0.1">Planos que crescem com o seu <em>time</em></h1>
+      <div class="planos-hero-row" data-animate="fade-up" data-delay="0.2">
+        <p class="planos-hero-sub">Todos os planos incluem 3 usuários. Anual com 15% de desconto.</p>
+        <PlansToggle dark />
+      </div>
     </div>
   </section>
 
   <!-- PRICING PLANS -->
-  <PricingPlans />
+  <PricingPlans showHead={false} />
 
   <!-- AI ADD-ONS -->
   <AIAddons />
@@ -183,8 +187,8 @@ import DotGrid from '../components/ui/DotGrid.astro';
 
   .planos-hero-title {
     font-family: var(--font-display);
-    font-size: clamp(2.5rem, 6vw, 5rem);
-    line-height: 1.0;
+    font-size: clamp(2.25rem, 4.5vw, 3.5rem);
+    line-height: 1.05;
     letter-spacing: -0.04em;
     font-weight: 600;
     color: #fff;
@@ -196,6 +200,14 @@ import DotGrid from '../components/ui/DotGrid.astro';
     font-style: italic;
     font-weight: 400;
     color: var(--turquesa);
+  }
+
+  .planos-hero-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px 32px;
   }
 
   .planos-hero-sub {
