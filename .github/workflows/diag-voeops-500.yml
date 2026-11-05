@@ -1,0 +1,65 @@
+name: Diagnóstico (somente leitura) — voeops.com 500
+
+# Roda apenas em push nesta branch. Não faz deploy, não altera a VPS.
+# Repositório público: a saída é cifrada (RSA+AES) e só sobe como artifact;
+# nada do diagnóstico é impresso no log.
+on:
+  push:
+    branches: [diag/voeops-500]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: diag-voeops-500
+  cancel-in-progress: true
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Coletar diagnóstico (cifrado)
+        env:
+          HOST: ${{ secrets.VPS_HOST }}
+          USER_: ${{ secrets.VPS_USER }}
+          PORT: ${{ secrets.VPS_PORT }}
+          KEY: ${{ secrets.VPS_SSH_KEY }}
+          BASE: ${{ secrets.VPS_PATH }}
+          PUBKEY: |
+            -----BEGIN PUBLIC KEY-----
+            MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAs4SxvH349TZn5C+4y/JN
+            1fgKsCbKMPBJRt6XUo7MTxYj//PJlOpxTOkjFBRvDo997xelKXZLwBPlGWjXESts
+            qCG+/vYjmotN8UkcY201w6jdxhQ72moEqXdEfnnnk6B0TwU91UBaWDQ3kIwsjyKo
+            URPF/FZWoMFc0IF2/neC9Il9BuUZk3d6avCqW+KA0g0GC3yh12EPC05bG802qPBW
+            z4wEoZmcjEG4o7w1KhfzvqXfvrQZ/J8zhJQDEucMgdCCo6o9lagL6GdijNxObWP4
+            +cFfodK6q59yVorXLaDyLXkHqck7/KGI6hIywbpKISlGQIa510bvPndFaicwqaYy
+            JJ0JiCtajKXz43FFCve8i1ShjGQ74a86pGiDG2Zc5tZ55S4D+OAwt3PvCs1yBJYs
+            HM//7Z7oRIk2N6ds59dLWWz0+7JU50A8rD4Nre2jz78aeqWSyNEWnaqDaeoVb06G
+            O9vTsP8rWC/8R4+8PJgVKvdIM1VVUtGLzJl6r4PzHyQjAgMBAAE=
+            -----END PUBLIC KEY-----
+        run: |
+          set -u
+          umask 077
+          mkdir -p ~/.ssh out
+          printf '%s\n' "$KEY" > ~/.ssh/k
+          printf '%s' "$PUBKEY" > pub.pem
+          set +e
+          ssh -i ~/.ssh/k -p "${PORT:-22}" -o StrictHostKeyChecking=accept-new \
+              -o BatchMode=yes -o ConnectTimeout=20 "$USER_@$HOST" \
+              "B='$BASE' bash -s" < .github/diag/remote.sh > out/diag.txt 2>&1
+          echo "ssh exit=$? linhas=$(wc -l < out/diag.txt)"
+          set -e
+          openssl rand 32 > k.bin
+          openssl enc -aes-256-cbc -pbkdf2 -salt -pass file:k.bin -in out/diag.txt -out out/diag.enc
+          openssl pkeyutl -encrypt -pubin -inkey pub.pem -pkeyopt rsa_padding_mode:oaep -in k.bin -out out/key.enc
+          rm -f out/diag.txt k.bin ~/.ssh/k
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: diag-cifrado
+          path: |
+            out/diag.enc
+            out/key.enc
+          retention-days: 1
